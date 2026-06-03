@@ -1,0 +1,15 @@
+[project]
+name = "pdl-morph-server"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "peter nadel", email = "peter.m.nadel@gmail.com"},
+]
+dependencies = ["beautifulsoup4>=4.14.3", "pydantic>=2.13.4", "tqdm>=4.67.3", "fastapi>=0.136.3", "beta-code>=1.1.1"]
+requires-python = "==3.11.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
