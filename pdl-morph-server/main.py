@@ -134,7 +134,8 @@ _COMBINING_TO_BETA: Dict[str, str] = {
 
 def _is_unicode_greek(text: str) -> bool:
     """Return True if text contains any Unicode Greek characters."""
-    return any("Ͱ" <= c <= "Ͽ" or "ἀ" <= c <= "῿" for c in text)
+    # return any("Ͱ" <= c <= "Ͽ" or "ἀ" <= c <= "῿" for c in text)
+    return any(c for c in text if c in beta_code.beta_code.UNICODE_TO_BETA_CODE_MAP.keys())
 
 
 def _unicode_to_betacode(text: str) -> str:
