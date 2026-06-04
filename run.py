@@ -10,9 +10,8 @@ import argparse
 import sys
 from pathlib import Path
 
-# pdl-morph-server/ has a hyphen so it can't be imported normally;
 # add it to sys.path directly so `import main` resolves.
-sys.path.insert(0, str(Path(__file__).parent / "pdl-morph-server"))
+sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 import uvicorn
 

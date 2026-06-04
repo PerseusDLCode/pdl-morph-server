@@ -218,9 +218,9 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Morphology and dictionary data files (large; download via src/tools/setup_morph_data.py)
-pdl-morph-server/*.morph.xml
-pdl-morph-server/*.pkl
-pdl-morph-server/*.json
+src/*.morph.xml
+src/*.pkl
+src/*.json
 
 # Regeneratable output files
 html/
