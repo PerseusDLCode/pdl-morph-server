@@ -11,6 +11,7 @@ Run from any directory:
   python src/morph-server/build_indexes.py
 """
 
+import html as html_mod
 import json
 import pickle
 import re
@@ -21,7 +22,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict
 
-from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
+from bs4 import BeautifulSoup, NavigableString, Tag, XMLParsedAsHTMLWarning
 from pydantic import BaseModel
 from tqdm import tqdm
 
@@ -187,6 +188,68 @@ def build_morph_frequencies(corpus_dir: Path, morph_index: dict, lang: str) -> d
 # Dictionary indexes
 # ---------------------------------------------------------------------------
 
+# Tags that are purely structural and carry no displayable content.
+_SKIP_TAGS = frozenset({"cb", "pb", "xr"})
+
+# Tags whose only job is to wrap other content — render children directly.
+_PASSTHROUGH_TAGS = frozenset({
+    "trans", "cit", "quote", "foreign", "usg", "author",
+    "orth", "itype", "pos", "gen", "case", "number", "etym", "lbl",
+})
+
+
+def _render_node(node, parts: list[str]) -> None:
+    if isinstance(node, NavigableString):
+        parts.append(html_mod.escape(str(node)))
+        return
+    if not isinstance(node, Tag):
+        return
+
+    name = node.name
+
+    if name in _SKIP_TAGS:
+        return
+
+    if name == "tr":
+        parts.append("<em>")
+        for child in node.children:
+            _render_node(child, parts)
+        parts.append("</em>")
+        return
+
+    if name == "hi":
+        rend = node.get("rend", "")
+        tag = "sup" if rend == "sup" else "em"
+        parts.append(f"<{tag}>")
+        for child in node.children:
+            _render_node(child, parts)
+        parts.append(f"</{tag}>")
+        return
+
+    if name == "bibl":
+        text = node.get_text()
+        if text.strip():
+            parts.append(f"<cite>{html_mod.escape(text)}</cite>")
+        return
+
+    if name in _PASSTHROUGH_TAGS:
+        for child in node.children:
+            _render_node(child, parts)
+        return
+
+    # Unknown tags — render children so we don't silently drop content.
+    for child in node.children:
+        _render_node(child, parts)
+
+
+def _render_sense_html(soup_tag: Tag) -> str:
+    """Convert a BeautifulSoup <sense> element to clean HTML."""
+    parts: list[str] = []
+    for child in soup_tag.children:
+        _render_node(child, parts)
+    return "".join(parts).strip()
+
+
 class Sense(BaseModel):
     id: str
     n: str
@@ -227,7 +290,7 @@ def build_lsj_index(dict_xml_path: Path) -> dict[str, DictionaryEntry]:
             translation = tr_tag.text.strip() if tr_tag else None
             senses.append(Sense(
                 id=sense_id, n=n, level=level,
-                parent_id=parent_id, translation=translation, text=str(s),
+                parent_id=parent_id, translation=translation, text=_render_sense_html(s),
             ))
 
         index[key] = DictionaryEntry(key=key, headword=headword, etymology=etymology, senses=senses)
@@ -266,7 +329,7 @@ def build_latin_index(dict_xml_path: Path) -> dict[str, DictionaryEntry]:
             translation = tr_tag.text.strip() if tr_tag else None
             senses.append(Sense(
                 id=sense_id, n=n, level=level,
-                parent_id=parent_id, translation=translation, text=str(s),
+                parent_id=parent_id, translation=translation, text=_render_sense_html(s),
             ))
 
         index[key] = DictionaryEntry(key=key, headword=headword, etymology=etymology, senses=senses)

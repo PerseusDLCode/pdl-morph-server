@@ -86,3 +86,11 @@ Frequency pickle keys are stable sorted tuples of all feature tags `(lang, form,
 | `lsj_index.json` / `ls_index.json` | LSJ and Lewis & Short dictionary indexes |
 
 The XML files are excluded from git (`.gitignore`) and must be downloaded via `setup_morph_data.py`.
+
+## Dictionary Entry Rendering
+
+`build_indexes.py` stores `sense.text = str(s)` — raw TEI XML markup for each `<sense>` element (e.g. `<sense id="n72.2" n="1" level="1"><tr>good</tr> <bibl n="...">Il. 1.1</bibl></sense>`). The `morph.html.jinja` template currently renders this raw XML directly, which doesn't produce useful HTML output.
+
+**Do not apply `perseus-hopper/reading/jsp/WEB-INF/xslt/tei.xsl` here.** It is tightly coupled to hopper-specific URL endpoints (`submitvote?`, `entityvote?`, `loadquery?`, `/hopper/image?`), embeds voting UI, and uses Beta Code display logic via `langfilter.xsl` that conflicts with the new server's Unicode-first approach.
+
+**Preferred fix**: update `build_indexes.py` to extract structured fields from each `<sense>` at build time (e.g. parse `<tr>`, `<bibl>`, `<hi>` into clean Python fields) rather than storing raw XML in `text`. Then `morph.html.jinja` has clean data to render without any XSLT dependency.
