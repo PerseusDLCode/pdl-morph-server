@@ -30,7 +30,9 @@ import beta_code
 # Paths
 # ---------------------------------------------------------------------------
 
-XML_DIR = Path(__file__).parent
+XML_DIR = Path(__file__).parent.parent / "data"
+PKL_DIR = Path(__file__).parent
+JSON_DIR = Path(__file__).parent
 
 LANGUAGE_FILES = {
     "la":  "latin.morph.xml",
@@ -180,12 +182,12 @@ class DictionaryEntry(BaseModel):
     etymology: str | None
     senses: list[Sense] # flat list, reconstructed as tree via parent_id
 
-greek_morphs = pickle.load(open(XML_DIR / "greek_morph_freqs.pkl", "rb"))
-latin_morphs = pickle.load(open(XML_DIR / "latin_morph_freqs.pkl", "rb"))
+greek_morphs = pickle.load(open(PKL_DIR / "greek_morph_freqs.pkl", "rb"))
+latin_morphs = pickle.load(open(PKL_DIR / "latin_morph_freqs.pkl", "rb"))
 
-with open(XML_DIR / "lsj_index.json", "r", encoding="utf-8") as f:
+with open(JSON_DIR / "lsj_index.json", "r", encoding="utf-8") as f:
     lsj_index = {k: DictionaryEntry.model_validate(v) for k, v in json.load(f).items()}
-with open(XML_DIR / "ls_index.json", "r", encoding="utf-8") as f:
+with open(JSON_DIR / "ls_index.json", "r", encoding="utf-8") as f:
     ls_index = {k: DictionaryEntry.model_validate(v) for k, v in json.load(f).items()}
 
 _MORPH_FREQS = {"grc": greek_morphs, "la": latin_morphs}

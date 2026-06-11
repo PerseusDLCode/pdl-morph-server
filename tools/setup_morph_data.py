@@ -21,11 +21,13 @@ import sys
 import urllib.request
 from pathlib import Path
 
-_MORPH_DIR = Path(__file__).parent.parent / "pdl-morph-server"
+_MORPH_DIR = Path(__file__).parent.parent / "data"
 
 _FILES = {
     "greek.morph.xml": "https://tufts.box.com/shared/static/bs8vl2vohxyqlzxppy8ii9o319k5l8xa.xml",
     "latin.morph.xml": "https://tufts.box.com/shared/static/053m59lsapbcq2eleks2nmz1t1xpnhcm.xml",
+    "lat.ls.perseus-eng2.xml": "https://tufts.box.com/shared/static/fqgpkupimzc5u1mt93b0fo9d2su5fx5n.xml",
+    "viaf66541464.001.perseus-eng1.xml": "https://tufts.box.com/shared/static/8685zxrfz9ywxw5wdd6xnix2h66ajmrh.xml",
 }
 
 
@@ -73,9 +75,9 @@ def main() -> None:
         print("All morphology data files are present.")
     else:
         print("\nDone. Build the indexes next:")
-        print("  python src/morph-server/build_indexes.py")
+        print("  python src/build_indexes.py")
         print("Then start the servers:")
-        print("  python src/tools/run_local.py <output_dir>")
+        print("  python run.py")
 
 
 if __name__ == "__main__":

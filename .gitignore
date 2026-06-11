@@ -230,3 +230,12 @@ notebooks/
 
 # vscode
 .vscode/
+
+# deployment scripts
+scripts/
+
+# static files
+data/greek.morph.xml
+data/latin.morph.xml
+data/viaf66541464.001.perseus-eng1.xml
+data/lat.ls.perseus-eng2.xml

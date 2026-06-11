@@ -30,13 +30,13 @@ warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 HERE = Path(__file__).parent
 ROOT = HERE.parent.parent
 
-GREEK_MORPH_XML  = HERE / "greek.morph.xml"
-GREEK_CORPUS_DIR = ROOT / "data" / "canonical-greekLit" / "data"
-LSJ_XML          = ROOT / "notebooks" / "refwork_test" / "viaf66541464.001.perseus-eng1.xml"
+GREEK_MORPH_XML  = ROOT / "pdl-morph-server" / "data" / "greek.morph.xml"
+GREEK_CORPUS_DIR = ROOT / "pdl-morph-server" / "data" / "canonical-greekLit" / "data"
+LSJ_XML          = ROOT / "pdl-morph-server" / "data" / "viaf66541464.001.perseus-eng1.xml"
 
-LATIN_MORPH_XML  = HERE / "latin.morph.xml"
-LATIN_CORPUS_DIR = ROOT / "data" / "canonical-latinLit" / "data"
-LS_XML           = ROOT / "notebooks" / "refwork_test" / "lat.ls.perseus-eng2.xml"
+LATIN_MORPH_XML  = ROOT / "pdl-morph-server" / "data" / "latin.morph.xml"
+LATIN_CORPUS_DIR = ROOT / "pdl-morph-server" / "data" / "canonical-latinLit" / "data"
+LS_XML           = ROOT / "pdl-morph-server" / "data" / "lat.ls.perseus-eng2.xml"
 
 OUTPUT_GREEK_FREQS = HERE / "greek_morph_freqs.pkl"
 OUTPUT_LSJ         = HERE / "lsj_index.json"
@@ -206,7 +206,7 @@ class DictionaryEntry(BaseModel):
 def build_lsj_index(dict_xml_path: Path) -> dict[str, DictionaryEntry]:
     """LSJ Greek lexicon — entries use <entry>, keyed by Unicode headword."""
     index: dict[str, DictionaryEntry] = {}
-    soup = BeautifulSoup(open(dict_xml_path, encoding="utf-8"), "lxml")
+    soup = BeautifulSoup(open(dict_xml_path, encoding="utf-8"), "html.parser")
 
     for i, entry in enumerate(tqdm(soup.find_all("entry"), desc="Indexing LSJ")):
         orth_tag = entry.find("orth")
@@ -245,7 +245,7 @@ def build_latin_index(dict_xml_path: Path) -> dict[str, DictionaryEntry]:
     index: dict[str, DictionaryEntry] = {}
     # lxml's XML parser cannot resolve the external DTD entities in this file,
     # so we use the HTML parser which tolerates them.
-    soup = BeautifulSoup(open(dict_xml_path, encoding="utf-8"), "lxml")
+    soup = BeautifulSoup(open(dict_xml_path, encoding="utf-8"), "html.parser")
 
     for i, entry in enumerate(tqdm(soup.find_all("entryfree"), desc="Indexing L&S")):
         orth_tag = entry.find("orth")
