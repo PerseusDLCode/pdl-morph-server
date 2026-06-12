@@ -6,7 +6,7 @@
 
   {% if analyses %}
     {% for entry in analyses %}
-      <div class="card card-border border-neutral-300">
+      <div class="card card-border border-neutral-300 mb-8">
         <div class="card-body">
           <div class="lemma" id="{{ entry.lemma }}">
             <div class="lemma_header">
@@ -14,16 +14,12 @@
               <span class="lemma_definitions">{{ entry.first_def }}</span>
             </div>
             <p class="confidence">{{ "%.2f"|format(entry.score) }}%</p>
-            <table>
-              <tbody>
-                {% for feats in entry.parse_rows %}
-                  <tr>
-                    <td class="{{ lang }}">{{ entry.lemma }}</td>
-                    <td>{{ feats }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+            {% for feats in entry.parse_rows %}
+              <div class="mb-1">
+                <span class="{{ lang }} mr-1">{{ entry.lemma }}</span>
+                <span>{{ feats }}</span>
+              </div>
+            {% endfor %}
           </div>
           {% if entry.dict_entry %}
             <div class="lexicon_entry">
@@ -34,7 +30,7 @@
               {% endif %}
 
               {% for sense in entry.dict_entry.senses %}
-                <div class="sense"><strong>{{ sense.n }}.</strong> {{ sense.text | safe }}</div>
+                <div class="sense indent-{{ sense.n }}"><strong>{{ sense.n }}.</strong> {{ sense.text | safe }}</div>
               {% endfor %}
             </div>
           {% endif %}

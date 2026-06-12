@@ -32,8 +32,9 @@ import beta_code
 # ---------------------------------------------------------------------------
 
 XML_DIR = Path(__file__).parent.parent / "data"
-PKL_DIR = Path(__file__).parent
-JSON_DIR = Path(__file__).parent
+SRC_DIR = Path(__file__).parent
+PKL_DIR = SRC_DIR
+JSON_DIR = SRC_DIR
 
 LANGUAGE_FILES = {
     "la": "latin.morph.xml",
@@ -301,7 +302,7 @@ app = FastAPI(
 )
 
 _templates = Environment(
-    loader=FileSystemLoader(XML_DIR / "templates"),
+    loader=FileSystemLoader(SRC_DIR / "templates"),
     autoescape=True,
 )
 
@@ -409,9 +410,9 @@ def morph_page(
         if dict_entry and dict_entry.senses and dict_entry.senses[0].translation:
             first_def = dict_entry.senses[0].translation
         parse_rows = [
-            ", ".join(f"{k}={v}" for k, v in parse.items() if k != "lemma")
-            for parse in parses
+            ", ".join(v for _k, v in parse.items() if _k != "lemma") for parse in parses
         ]
+
         analyses.append(
             {
                 "lemma": lemma,

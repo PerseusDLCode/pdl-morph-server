@@ -22,4 +22,5 @@ pythonpath = ["src"]
 dev = [
     "pytest>=9.0.3",
     "httpx2>=2.3.0",
+    "fastapi[standard]>=0.136.3",
 ]
