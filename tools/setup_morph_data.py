@@ -14,6 +14,7 @@ Sources:
                   https://github.com/PerseusDL/morpheus
     Latin data  — same source
 """
+
 from __future__ import annotations
 
 import argparse
@@ -35,6 +36,7 @@ def _download(url: str, dest: Path) -> None:
     print(f"  Downloading {dest.name} ...", flush=True)
     tmp = dest.with_suffix(".tmp")
     try:
+
         def _progress(block_count, block_size, total_size):
             if total_size > 0:
                 pct = min(100, block_count * block_size * 100 // total_size)
@@ -63,7 +65,9 @@ def main() -> None:
     for name, url in _FILES.items():
         dest = _MORPH_DIR / name
         if dest.exists() and not args.force:
-            print(f"  Already present: {dest.name} — skipping (use --force to re-download)")
+            print(
+                f"  Already present: {dest.name} — skipping (use --force to re-download)"
+            )
         else:
             all_present = False
             try:

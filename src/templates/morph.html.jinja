@@ -1,0 +1,45 @@
+{% extends "base.html.jinja" %}
+
+{% block content %}
+  <h1 class="font-bold text-lg">{{ form }}</h1>
+  <p class="text-sm text-neutral-500">Language: {{ lang_name }}</p>
+
+  {% if analyses %}
+    {% for entry in analyses %}
+      <div class="card card-border border-neutral-300 mb-8">
+        <div class="card-body">
+          <div class="lemma" id="{{ entry.lemma }}">
+            <div class="lemma_header">
+              <h4 class="{{ lang }}">{{ entry.lemma }}</h4>
+              <span class="lemma_definitions">{{ entry.first_def }}</span>
+            </div>
+            <p class="confidence">{{ "%.2f"|format(entry.score) }}%</p>
+            {% for feats in entry.parse_rows %}
+              <div class="mb-1">
+                <span class="{{ lang }} mr-1">{{ entry.lemma }}</span>
+                <span>{{ feats }}</span>
+              </div>
+            {% endfor %}
+          </div>
+          {% if entry.dict_entry %}
+            <div class="lexicon_entry">
+              <h3>{{ entry.dict_entry.headword }}</h3>
+
+              {% if entry.dict_entry.etymology %}
+                <p><em>Etymology:</em> {{ entry.dict_entry.etymology }}</p>
+              {% endif %}
+
+              {% for sense in entry.dict_entry.senses %}
+                <div class="sense indent-{{ sense.n }}"><strong>{{ sense.n }}.</strong> {{ sense.text | safe }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="none">No analyses found.</p>
+  {% endif %}
+
+  <p class="back"><a href="javascript:history.back()">&#x2190; back</a></p>
+{% endblock %}
