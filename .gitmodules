@@ -1,6 +1,0 @@
-[submodule "data/canonical-latinLit"]
-	path = data/canonical-latinLit
-	url = https://github.com/PerseusDLCode/canonical-latinLit
-[submodule "data/canonical-greekLit"]
-	path = data/canonical-greekLit
-	url = https://github.com/PerseusDLCode/canonical-greekLit

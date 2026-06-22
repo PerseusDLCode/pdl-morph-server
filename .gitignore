@@ -1,3 +1,7 @@
+.clj-kondo
+.lsp
+.calva
+.cpcache
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -195,9 +199,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#   and can be added to the global gitignore or merged into this file. However, if you prefer,
 #   you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 # Temporary file for partial code execution
@@ -231,11 +235,13 @@ notebooks/
 # vscode
 .vscode/
 
-# deployment scripts
-scripts/
 
 # static files
 data/greek.morph.xml
 data/latin.morph.xml
 data/viaf66541464.001.perseus-eng1.xml
 data/lat.ls.perseus-eng2.xml
+
+.DS_Store
+greek.morph.jsonl
+latin.morph.jsonl
