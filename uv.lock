@@ -259,7 +259,7 @@ wheels = [
 [[package]]
 name = "kodon-py"
 version = "0.1.0"
-source = { git = "https://github.com/PerseusDLCode/kodon-py.git?rev=beta#5fd6a7c3bb85f44b00ef7fa985aee1a026d7fffa" }
+source = { git = "https://github.com/PerseusDLCode/kodon-py.git#5fd6a7c3bb85f44b00ef7fa985aee1a026d7fffa" }
 dependencies = [
     { name = "click" },
     { name = "flask" },
@@ -413,7 +413,7 @@ dev = [
 requires-dist = [
     { name = "beta-code", specifier = ">=1.1.1" },
     { name = "fastapi", specifier = ">=0.137.2" },
-    { name = "kodon-py", git = "https://github.com/PerseusDLCode/kodon-py.git?rev=beta" },
+    { name = "kodon-py", git = "https://github.com/PerseusDLCode/kodon-py.git" },
     { name = "lxml", specifier = ">=6.1.1" },
     { name = "sqlmodel", specifier = ">=0.0.38" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.49.0" },

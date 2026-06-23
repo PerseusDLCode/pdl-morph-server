@@ -28,4 +28,4 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-kodon-py = { git = "https://github.com/PerseusDLCode/kodon-py.git", rev = "beta" }
+kodon-py = { git = "https://github.com/PerseusDLCode/kodon-py.git" }
