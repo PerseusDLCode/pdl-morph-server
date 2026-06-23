@@ -1,5 +1,5 @@
 import beta_code
-from sqlalchemy import func, text
+from sqlalchemy import text
 from sqlmodel import Session, select
 
 from .language import bare_form, normalize_form, normalize_unicode
@@ -48,7 +48,7 @@ def _parses_matching(
 ) -> list[tuple[Parse, Lemma]]:
     statement = (
         select(Parse, Lemma)
-        .join(Lemma, Parse.lemma_id == Lemma.id)
+        .join(Lemma, Parse.lemma_id == Lemma.id)  # ty:ignore[invalid-argument-type]
         .where(getattr(Parse, column) == value, Lemma.language_code == language_code)
     )
     return list(session.exec(statement))
@@ -59,7 +59,7 @@ def _parses_matching_unicode_form(
 ) -> list[tuple[Parse, Lemma]]:
     statement = (
         select(Parse, Lemma)
-        .join(Lemma, Parse.lemma_id == Lemma.id)
+        .join(Lemma, Parse.lemma_id == Lemma.id)  # ty:ignore[invalid-argument-type]
         .where(
             Parse.form == value,
             Lemma.language_code == language_code,
@@ -84,7 +84,7 @@ def _lookup_parses_for_word(
         rows = _parses_matching(session, language_code, "bare_form", bare_form(word))
     if not rows:
         rows = _parses_matching(
-            session, language_code, "form_normalized", normalize_unicode(word)
+            session, language_code, "form_normalized", str(normalize_unicode(word))
         )
     return rows
 
@@ -150,7 +150,8 @@ def lookup_senses(
 
     key = headword if sequence_number == -1 else f"{headword}{sequence_number}"
     statement = select(Sense).where(
-        Sense.document_id.in_(document_ids), Sense.lemma == f"entry={key}"
+        Sense.document_id.in_(document_ids),  # ty:ignore[unresolved-attribute]
+        Sense.lemma == f"entry={key}",
     )
     return list(session.exec(statement))
 
@@ -169,7 +170,8 @@ def lookup_entries(
 
     key = headword if sequence_number == -1 else f"{headword}{sequence_number}"
     statement = select(Entry).where(
-        Entry.document_id.in_(document_ids), Entry.key == key
+        Entry.document_id.in_(document_ids),  # ty:ignore[unresolved-attribute]
+        Entry.key == key,
     )
     return list(session.exec(statement))
 
@@ -232,8 +234,8 @@ def form_frequency_scores(
                 "language_code": language_code,
                 "feature_key": _feature_key(exclusive),
             },
-        ).first()
-        scores[parse.id] = row[0] if row else 0.0
+        ).first()  # ty:ignore[no-matching-overload]
+        scores[parse.id] = row[0] if row else 0.0  # ty:ignore[invalid-assignment]
     return scores
 
 
@@ -275,8 +277,8 @@ def prior_frequency_scores(
                 "current_feature_key": current_key,
                 **previous_params,
             },
-        ).first()
-        scores[parse.id] = (row[0] or 0.0) if row else 0.0
+        ).first()  # ty:ignore[no-matching-overload]
+        scores[parse.id] = (row[0] or 0.0) if row else 0.0  # ty:ignore[invalid-assignment]
     return scores
 
 
@@ -295,7 +297,7 @@ def word_frequency_scores(
     for key, parses in lemma_groups.items():
         frequency = document_frequencies.get(key) or 0.0
         for parse in parses:
-            scores[parse.id] = frequency
+            scores[parse.id] = frequency  # ty:ignore[invalid-assignment]
     return scores
 
 
@@ -329,4 +331,4 @@ def select_winning_parse(*score_maps: dict[int, float]) -> int | None:
         return None
 
     averages = {parse_id: totals[parse_id] / counts[parse_id] for parse_id in totals}
-    return max(averages, key=averages.get)
+    return max(averages, key=averages.get)  # ty:ignore[no-matching-overload]

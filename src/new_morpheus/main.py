@@ -2,6 +2,9 @@ import os
 
 import uvicorn
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from kodon_py.tei_parser import TEIParser
+from lxml import etree
 from sqlmodel import Session
 
 from .db import get_session
@@ -17,7 +20,34 @@ from .morph import (
 )
 from .schemas import EntryOut, LemmaResult, MorphResponse, ParseOut, SenseOut
 
+
+def _parse_tei_text(text: str | None) -> str | list[dict] | None:
+    if text is None:
+        return None
+    try:
+        root = etree.fromstring(text)
+    except etree.XMLSyntaxError:
+        try:
+            root = etree.fromstring(f"<span>{text}</span>")
+        except etree.XMLSyntaxError:
+            return text
+    parsed = TEIParser(root, "", "").elements
+    return parsed if parsed else text
+
+
 app = FastAPI(title="new-morpheus")
+
+origins = ["http://localhost:5000", "http://127.0.0.1:5000"] + os.getenv(
+    "ALLOWED_ORIGINS", ""
+).split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/morph", response_model=MorphResponse)
@@ -44,10 +74,6 @@ def morph(
         prior_frequency_scores(session, language, grouped, prior_grouped),
     )
 
-    # FIXME: We're using Giuseppe Celano's Unicode LSJ, so we need
-    # to look up senses and entries—but not document_frequency—
-    # with the Unicode form of the headword. We should fix this
-    # by standardizing on Unicode everywhere.
     lemmas = [
         LemmaResult(
             headword=headword,
@@ -59,7 +85,9 @@ def morph(
                 for parse in parses
             ],
             senses=[
-                SenseOut.model_validate(sense)
+                SenseOut.model_validate(sense).model_copy(
+                    update={"definition": _parse_tei_text(sense.definition)}
+                )
                 for sense in lookup_senses(
                     session,
                     language,
@@ -68,7 +96,9 @@ def morph(
                 )
             ],
             entries=[
-                EntryOut.model_validate(entry)
+                EntryOut.model_validate(entry).model_copy(
+                    update={"text": _parse_tei_text(entry.text)}
+                )
                 for entry in lookup_entries(
                     session,
                     language,
