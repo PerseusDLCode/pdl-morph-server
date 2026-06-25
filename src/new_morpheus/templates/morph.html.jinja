@@ -73,79 +73,32 @@
                 </table>
             </details>
 
-            <!-- Senses -->
-            <details class="border border-neutral-200 rounded">
-                <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
-                    Senses
-                    <span class="font-normal text-neutral-400">({{ lemma.senses|length }} sense{{ 's' if lemma.senses|length != 1 else '' }})</span>
-                </summary>
-                <div class="px-3 py-2 space-y-1">
-                    {% if lemma.senses|length == 0 %}
-                        <p class="text-neutral-400 text-sm italic">No senses available.</p>
-                    {% else %}
-                        {% set sense_group_ns = namespace(last_id=None) %}
-                        {% for sense in lemma.senses | sort(attribute='document_id') %}
-                            {% if sense_group_ns.last_id != sense.document_id %}
-                                {% if sense_group_ns.last_id is not none %}
-                                    </div></details>
-                                {% endif %}
-                                {% set sense_group_ns.last_id = sense.document_id %}
-                                <details class="border border-neutral-100 rounded">
-                                    <summary class="cursor-pointer font-medium text-neutral-600 text-sm">{{ sense.document_id }}</summary>
-                                    <div class="px-3 py-1">
-                            {% endif %}
-                            <div class="text-sm" style="padding-left: {{ (sense.level or 0) * 1.25 }}rem">
-                                {% if sense.sense %}
-                                    <span class="font-medium text-neutral-700">{{ sense.sense }}</span>
-                                {% endif %}
-                                {% if sense.definition %}
-                                    <span{% if sense.sense %} class="ml-1"{% endif %}>
-                                        {% if sense.definition is string %}
-                                            {{ sense.definition }}
-                                        {% else %}
-                                            {% for element in sense.definition %}
-                                                {% with text_container=element %}
-                                                    {% include 'components/ReadableTextContainer.html.jinja' %}
-                                                {% endwith %}
-                                            {% endfor %}
-                                        {% endif %}
-                                    </span>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                        {% if sense_group_ns.last_id is not none %}
-                            </div></details>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            </details>
-
             <!-- Full Entry -->
             <details class="border border-neutral-200 rounded">
                 <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
-                    Full Entry
+                    Entries
                     <span class="font-normal text-neutral-400">({{ lemma.entries|length }} lexicon{{ 's' if lemma.entries|length != 1 else '' }})</span>
                 </summary>
                 <div class="px-3 py-2 space-y-1">
                     {% if lemma.entries|length == 0 %}
-                    <p class="text-neutral-400 text-sm italic">No lexicon entries available.</p>
+                        <p class="text-neutral-400 text-sm italic">No lexicon entries available.</p>
                     {% else %}
-                    {% for entry in lemma.entries %}
-                    <details class="border border-neutral-100 rounded">
-                        <summary class="cursor-pointer font-medium text-neutral-600 text-sm">{{ entry.document_id }}</summary>
-                        <div class="bg-neutral-50 border border-neutral-100 mt-1 overflow-auto p-2">
-                            {% if entry.text is string %}
-                            {{ entry.text }}
-                            {% else %}
-                            {% for element in entry.text %}
-                                {% with text_container=element %}
-                                {% include 'components/ReadableTextContainer.html.jinja' %}
-                                {% endwith %}
-                            {% endfor %}
-                            {% endif %}
-                        </div>
-                    </details>
-                    {% endfor %}
+                        {% for entry in lemma.entries %}
+                            <details>
+                                <summary class="cursor-pointer font-medium text-neutral-600 text-sm">{{ entry.document_id }}</summary>
+                                <div class="mt-1 overflow-auto p-2 text-sm">
+                                    {% if entry.text is string %}
+                                        {{ entry.text }}
+                                    {% else %}
+                                        {% for element in entry.text %}
+                                            {% with text_container=element %}
+                                                {% include 'components/ReadableTextContainer.html.jinja' %}
+                                            {% endwith %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </details>
+                        {% endfor %}
                     {% endif %}
                 </div>
             </details>
@@ -157,23 +110,29 @@
 
 {% block scripts %}
 <script>
-function linkifyBiblRefs(preferredLang) {
-    const refs = document.querySelectorAll('a.perseus-reference[data-ref]');
-    if (!refs.length) return;
+    const perseusHostname = {{ perseus_hostname | tojson }};
 
-    refs.forEach(function (el) {
-        const urn = el.dataset.ref;
-        if (!urn || !urn.startsWith('urn:cts:')) return;
+    function linkifyBiblRefs(preferredLang) {
+        const refs = document.querySelectorAll('a.perseus-reference[data-ref]');
+        if (!refs.length) return;
 
-        el.href = urn + '/';
-        el.className = "link";
-    });
-}
+        refs.forEach(function (el) {
+            let urn = el.dataset.ref;
+            if (!urn || !urn.startsWith('urn:cts:')) return;
 
-(function() {
-    const language = new URLSearchParams(window.location.search).get("language");
+            urn = urn.replace('grc1', 'grc2');
+            urn = urn.replace('lat1', 'lat2');
 
-    linkifyBiblRefs(language)
-})();
+            el.href = `//${perseusHostname}/${urn}/`;
+            el.target = "_blank";
+            el.className = "link";
+        });
+    }
+
+    (function() {
+        const language = new URLSearchParams(window.location.search).get("language");
+        // do not call linkifyBiblRefs yet, as the static version of Perseus
+        // has no way to resovle the vast majority of these URNs.
+    })();
 </script>
 {% endblock %}

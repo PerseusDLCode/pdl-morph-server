@@ -54,6 +54,8 @@ app.add_middleware(
 
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
+PERSEUS_HOSTNAME = os.getenv("PERSEUS_HOSTNAME", "127.0.0.1:5000")
+
 
 @app.get("/api/morph", response_model=MorphResponse)
 def api_morph(
@@ -180,7 +182,12 @@ def morph(
     return templates.TemplateResponse(
         request=request,
         name="morph.html.jinja",
-        context=dict(word=word, language_code=language, lemmas=lemmas),
+        context=dict(
+            word=word,
+            language_code=language,
+            lemmas=lemmas,
+            perseus_hostname=PERSEUS_HOSTNAME,
+        ),
     )
 
 

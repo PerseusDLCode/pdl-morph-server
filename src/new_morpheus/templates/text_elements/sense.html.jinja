@@ -1,0 +1,12 @@
+<div style="padding-left: {{ (text_container.level or 0)|float * 1.25 }}rem">
+    {% if text_container.n %}
+        <span class="font-medium text-neutral-700">{{ text_container.n }}</span>
+    {% endif %}
+    <span{% if text_container.n %} class="ml-1"{% endif %}>
+        {% for element in text_container.children %}
+            {% with text_container=element %}
+                {% include 'components/ReadableTextContainer.html.jinja' %}
+            {% endwith %}
+        {% endfor %}
+    </span>
+</div>
