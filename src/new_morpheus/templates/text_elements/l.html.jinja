@@ -1,0 +1,15 @@
+<div class="prose tei-l flex justify-between w-full">
+    <div>
+        {%- for child in text_container.children -%}
+            {%- set child_urn = child.urn if child.urn else text_container.urn -%}
+            {%- with text_container=dict(child, urn=child_urn) -%}
+                {%- include 'components/ReadableTextContainer.html.jinja' -%}
+            {%- endwith -%}
+        {%- endfor -%}
+    </div>
+
+    {% set n = text_container.get("n", "1") | int %}
+    {% if (n % 5 == 0 and n!= 0) or n == 1 %}
+        <span class="select-none">{{ n }}</span>
+    {% endif %}
+</div>

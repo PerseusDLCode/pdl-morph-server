@@ -1,0 +1,18 @@
+{%- set note_id = "note-" ~ text_container.index -%}
+<sup class="tei-note">
+    <button
+        class="tei-note-trigger cursor-pointer text-blue-700 hover:text-blue-900"
+        type="button"
+        onclick="document.getElementById('{{ note_id }}').showModal()"
+        aria-label="Show note"
+    ></button>
+</sup>
+{%- set note_content -%}
+    {%- for child in text_container.children -%}
+        {%- set child_urn = child.urn if child.urn else text_container.urn -%}
+        {%- with text_container=dict(child, urn=child_urn) -%}
+            {%- include 'components/ReadableTextContainer.html.jinja' -%}
+        {%- endwith -%}
+    {%- endfor -%}
+{%- endset -%}
+{%- set _ = notes.items.append({"id": note_id, "content": note_content}) -%}

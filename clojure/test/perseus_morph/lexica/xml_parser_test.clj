@@ -71,7 +71,20 @@
                            <sense id=\"n1.2\" n=\"1\" level=\"2\"><tr>inner</tr></sense>
                          </sense>
                        </entryFree>"
-                      "i")))))
+                      "i"))))
+
+  (testing "non-meaning elements (cit, quote, bibl, foreign) are serialized
+            with their full TEI tag structure instead of being stripped"
+    (is (= [{:key "abc" :id "n1.1" :n "1" :level nil
+             :short-def "<g>meaning</g><cit><quote lang=\"greek\">λέξις</quote><bibl>X.1.1</bibl></cit><foreign>bar</foreign>"}]
+           (senses-of "<entryFree key=\"abc\">
+                         <sense id=\"n1.1\" n=\"1\">
+                           <tr>meaning</tr>
+                           <cit><quote lang=\"greek\">λέξις</quote><bibl>X.1.1</bibl></cit>
+                           <foreign>bar</foreign>
+                         </sense>
+                       </entryFree>"
+                      "g")))))
 
 (deftest parse-lexicon!-entries-test
   (testing "an entry's full subtree (every tag, attribute, and text) is reconstructed,

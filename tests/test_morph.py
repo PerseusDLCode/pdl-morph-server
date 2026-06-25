@@ -20,7 +20,7 @@ client = TestClient(app)
 
 
 def test_lookup_by_exact_form_finds_known_lemma():
-    response = client.get("/morph", params={"word": "abeuntibus", "language": "lat"})
+    response = client.get("/api/morph", params={"word": "abeuntibus", "language": "lat"})
 
     assert response.status_code == 200
     body = response.json()
@@ -35,7 +35,7 @@ def test_lookup_falls_back_to_bare_form_when_accented_form_has_no_exact_match():
     # now, so the direct/bare_form/form_normalized tiers all miss, and this
     # only succeeds via lookup_parses's Beta Code fallback (which converts
     # to "ἐνύω" via beta_code.beta_code_to_greek and retries).
-    response = client.get("/morph", params={"word": "enuw/", "language": "grc"})
+    response = client.get("/api/morph", params={"word": "enuw/", "language": "grc"})
 
     assert response.status_code == 200
     body = response.json()
@@ -71,8 +71,8 @@ def test_lookup_falls_back_to_form_normalized_for_accented_unicode_variant():
 
 
 def test_lookup_is_case_insensitive_for_non_arabic_languages():
-    lower = client.get("/morph", params={"word": "abeuntibus", "language": "lat"}).json()
-    upper = client.get("/morph", params={"word": "ABEUNTIBUS", "language": "lat"}).json()
+    lower = client.get("/api/morph", params={"word": "abeuntibus", "language": "lat"}).json()
+    upper = client.get("/api/morph", params={"word": "ABEUNTIBUS", "language": "lat"}).json()
 
     assert [lemma["headword"] for lemma in lower["lemmas"]] == [
         lemma["headword"] for lemma in upper["lemmas"]
@@ -80,7 +80,7 @@ def test_lookup_is_case_insensitive_for_non_arabic_languages():
 
 
 def test_unknown_word_returns_empty_lemma_list():
-    response = client.get("/morph", params={"word": "nonexistentxyz", "language": "lat"})
+    response = client.get("/api/morph", params={"word": "nonexistentxyz", "language": "lat"})
 
     assert response.status_code == 200
     assert response.json()["lemmas"] == []
@@ -88,7 +88,7 @@ def test_unknown_word_returns_empty_lemma_list():
 
 def test_document_id_attaches_weighted_frequency_for_matching_lemma():
     response = client.get(
-        "/morph",
+        "/api/morph",
         params={
             "word": "dulce",
             "language": "lat",
@@ -103,7 +103,7 @@ def test_document_id_attaches_weighted_frequency_for_matching_lemma():
 
 
 def test_document_frequency_is_none_when_document_id_omitted():
-    response = client.get("/morph", params={"word": "dulce", "language": "lat"})
+    response = client.get("/api/morph", params={"word": "dulce", "language": "lat"})
 
     assert response.status_code == 200
     lemmas = response.json()["lemmas"]
@@ -112,7 +112,7 @@ def test_document_frequency_is_none_when_document_id_omitted():
 
 def test_document_frequency_is_none_for_document_with_no_recorded_frequency():
     response = client.get(
-        "/morph",
+        "/api/morph",
         params={
             "word": "dulce",
             "language": "lat",
@@ -126,7 +126,7 @@ def test_document_frequency_is_none_for_document_with_no_recorded_frequency():
 
 
 def test_senses_are_attached_from_the_lexicon_for_the_word_s_language():
-    response = client.get("/morph", params={"word": "dulce", "language": "lat"})
+    response = client.get("/api/morph", params={"word": "dulce", "language": "lat"})
 
     assert response.status_code == 200
     lemmas = response.json()["lemmas"]
@@ -195,7 +195,7 @@ def test_select_winning_parse_averages_normalized_scores_across_evaluators():
 
 
 def test_morph_response_marks_exactly_one_winning_parse_when_ambiguous():
-    response = client.get("/morph", params={"word": "dulce", "language": "lat"})
+    response = client.get("/api/morph", params={"word": "dulce", "language": "lat"})
 
     assert response.status_code == 200
     parses = [parse for lemma in response.json()["lemmas"] for parse in lemma["parses"]]

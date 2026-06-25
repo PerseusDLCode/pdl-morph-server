@@ -1,8 +1,11 @@
 import os
+from pathlib import Path
 
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from kodon_py.tei_parser import TEIParser
 from lxml import etree
 from sqlmodel import Session
@@ -49,15 +52,78 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 
-@app.get("/morph", response_model=MorphResponse)
-def morph(
+
+@app.get("/api/morph", response_model=MorphResponse)
+def api_morph(
     word: str,
     language: str = "grc",
     document_id: str | None = None,
     prior_word: str | None = None,
     session: Session = Depends(get_session),
 ) -> MorphResponse:
+    grouped = lookup_parses(session, word, language)
+
+    document_frequencies = {
+        key: document_frequency(session, language, document_id, *key)
+        if document_id
+        else None
+        for key in grouped
+    }
+    prior_grouped = lookup_parses(session, prior_word, language) if prior_word else {}
+
+    winner_id = select_winning_parse(
+        word_frequency_scores(grouped, document_frequencies),
+        form_frequency_scores(session, language, grouped),
+        prior_frequency_scores(session, language, grouped, prior_grouped),
+    )
+
+    lemmas = [
+        LemmaResult(
+            headword=headword,
+            sequence_number=sequence_number,
+            parses=[
+                ParseOut.model_validate(parse).model_copy(
+                    update={"is_winner": parse.id == winner_id}
+                )
+                for parse in parses
+            ],
+            senses=[
+                SenseOut.model_validate(sense)
+                for sense in lookup_senses(
+                    session,
+                    language,
+                    headword,
+                    sequence_number,
+                )
+            ],
+            entries=[
+                EntryOut.model_validate(entry)
+                for entry in lookup_entries(
+                    session,
+                    language,
+                    headword,
+                    sequence_number,
+                )
+            ],
+            document_frequency=document_frequencies[(headword, sequence_number)],
+        )
+        for (headword, sequence_number), parses in grouped.items()
+    ]
+
+    return MorphResponse(word=word, language_code=language, lemmas=lemmas)
+
+
+@app.get("/morph", response_class=HTMLResponse)
+def morph(
+    request: Request,
+    word: str,
+    language: str = "grc",
+    document_id: str | None = None,
+    prior_word: str | None = None,
+    session: Session = Depends(get_session),
+):
     grouped = lookup_parses(session, word, language)
 
     document_frequencies = {
@@ -111,7 +177,11 @@ def morph(
         for (headword, sequence_number), parses in grouped.items()
     ]
 
-    return MorphResponse(word=word, language_code=language, lemmas=lemmas)
+    return templates.TemplateResponse(
+        request=request,
+        name="morph.html.jinja",
+        context=dict(word=word, language_code=language, lemmas=lemmas),
+    )
 
 
 def dev() -> None:

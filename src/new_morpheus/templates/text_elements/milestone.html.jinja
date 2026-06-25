@@ -1,0 +1,1 @@
+{%- set id = text_container.unit + "-" + text_container.get("n", "") -%}<span id="{{ id }}" data-n="{{ text_container.get("n", "") }}" data-unit="{{ text_container.unit }}" class="tei-milestone" title="{{ text_container.unit|default("") }} {{ text_container.get("n", "") }}"></span>

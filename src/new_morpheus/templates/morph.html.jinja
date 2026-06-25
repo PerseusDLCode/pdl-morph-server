@@ -1,0 +1,155 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}{{ word }} – Morpheus{% endblock %}
+
+{%- macro morph_details(parse) -%}
+{%- set ns = namespace(parts=[]) -%}
+{%- if parse.grammatical_case %}{%- set ns.parts = ns.parts + [parse.grammatical_case] -%}{%- endif -%}
+{%- if parse.number %}{%- set ns.parts = ns.parts + [parse.number] -%}{%- endif -%}
+{%- if parse.gender %}{%- set ns.parts = ns.parts + [parse.gender] -%}{%- endif -%}
+{%- if parse.tense %}{%- set ns.parts = ns.parts + [parse.tense] -%}{%- endif -%}
+{%- if parse.mood %}{%- set ns.parts = ns.parts + [parse.mood] -%}{%- endif -%}
+{%- if parse.voice %}{%- set ns.parts = ns.parts + [parse.voice] -%}{%- endif -%}
+{%- if parse.person %}{%- set ns.parts = ns.parts + [parse.person] -%}{%- endif -%}
+{%- if parse.degree %}{%- set ns.parts = ns.parts + [parse.degree] -%}{%- endif -%}
+{%- if parse.dialect %}{%- set ns.parts = ns.parts + [parse.dialect] -%}{%- endif -%}
+{%- if parse.other %}{%- set ns.parts = ns.parts + [parse.other] -%}{%- endif -%}
+{{- ns.parts | join(' · ') -}}
+{%- endmacro -%}
+
+{% block content %}
+<div>
+    <h1 class="text-xl font-bold mb-4">
+        {{ word }}
+        <span class="font-normal text-neutral-500">({{ language_code }})</span>
+    </h1>
+
+    {% if lemmas|length == 0 %}
+    <p class="text-neutral-500 italic">No results found.</p>
+    {% endif %}
+
+    {% for lemma in lemmas %}
+    <details class="border border-neutral-300 rounded mb-2 overflow-hidden" open>
+        <summary class="bg-neutral-100 cursor-pointer font-semibold px-4 py-2 text-neutral-800">
+            <span>{{ lemma.headword }}</span>
+            {% if lemma.sequence_number > 1 %}
+            <span class="text-neutral-400">({{ lemma.sequence_number }})</span>
+            {% endif %}
+            {% if lemma.document_frequency is not none %}
+            <span class="font-normal text-neutral-400 text-sm">— {{ "%.0f" % (lemma.document_frequency * 100) }}%</span>
+            {% endif %}
+        </summary>
+
+        <div class="px-4 py-2 space-y-2">
+            <!-- Morphology -->
+            <details class="border border-neutral-200 rounded" open>
+                <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
+                    Morphology
+                    <span class="font-normal text-neutral-400">({{ lemma.parses|length }} parse{{ 's' if lemma.parses|length != 1 else '' }})</span>
+                </summary>
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-neutral-200 text-neutral-500 text-xs uppercase">
+                            <th class="px-3 py-1 text-left">Form</th>
+                            <th class="px-3 py-1 text-left">POS</th>
+                            <th class="px-3 py-1 text-left">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for parse in lemma.parses %}
+                        <tr class="border-b border-neutral-100{% if parse.is_winner %} bg-green-50{% endif %}">
+                            <td class="px-3 py-1">
+                                <span>{{ parse.form }}</span>
+                                {% if parse.is_winner %}
+                                <span class="text-green-600 text-xs" title="Most likely parse"> ✓</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-1">{{ parse.part_of_speech }}</td>
+                            <td class="px-3 py-1 text-neutral-600 text-sm">{{ morph_details(parse) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </details>
+
+            <!-- Senses -->
+            <details class="border border-neutral-200 rounded">
+                <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
+                    Senses
+                    <span class="font-normal text-neutral-400">({{ lemma.senses|length }} sense{{ 's' if lemma.senses|length != 1 else '' }})</span>
+                </summary>
+                <div class="px-3 py-2 space-y-1">
+                    {% if lemma.senses|length == 0 %}
+                        <p class="text-neutral-400 text-sm italic">No senses available.</p>
+                    {% else %}
+                        {% set sense_group_ns = namespace(last_id=None) %}
+                        {% for sense in lemma.senses | sort(attribute='document_id') %}
+                            {% if sense_group_ns.last_id != sense.document_id %}
+                                {% if sense_group_ns.last_id is not none %}
+                                    </div></details>
+                                {% endif %}
+                                {% set sense_group_ns.last_id = sense.document_id %}
+                                <details class="border border-neutral-100 rounded">
+                                    <summary class="cursor-pointer font-medium text-neutral-600 text-sm">{{ sense.document_id }}</summary>
+                                    <div class="px-3 py-1">
+                            {% endif %}
+                            <div class="text-sm" style="padding-left: {{ (sense.level or 0) * 1.25 }}rem">
+                                {% if sense.sense %}
+                                    <span class="font-medium text-neutral-700">{{ sense.sense }}</span>
+                                {% endif %}
+                                {% if sense.definition %}
+                                    <span{% if sense.sense %} class="ml-1"{% endif %}>
+                                        {% if sense.definition is string %}
+                                            {{ sense.definition }}
+                                        {% else %}
+                                            {% for element in sense.definition %}
+                                                {% with text_container=element %}
+                                                    {% include 'components/ReadableTextContainer.html.jinja' %}
+                                                {% endwith %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        {% if sense_group_ns.last_id is not none %}
+                            </div></details>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </details>
+
+            <!-- Full Entry -->
+            <details class="border border-neutral-200 rounded">
+                <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
+                    Full Entry
+                    <span class="font-normal text-neutral-400">({{ lemma.entries|length }} lexicon{{ 's' if lemma.entries|length != 1 else '' }})</span>
+                </summary>
+                <div class="px-3 py-2 space-y-1">
+                    {% if lemma.entries|length == 0 %}
+                    <p class="text-neutral-400 text-sm italic">No lexicon entries available.</p>
+                    {% else %}
+                    {% for entry in lemma.entries %}
+                    <details class="border border-neutral-100 rounded">
+                        <summary class="cursor-pointer font-medium text-neutral-600 text-sm">{{ entry.document_id }}</summary>
+                        <div class="bg-neutral-50 border border-neutral-100 mt-1 overflow-auto p-2">
+                            {% if entry.text is string %}
+                            {{ entry.text }}
+                            {% else %}
+                            {% for element in entry.text %}
+                                {% with text_container=element %}
+                                {% include 'components/ReadableTextContainer.html.jinja' %}
+                                {% endwith %}
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </details>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </details>
+        </div>
+    </details>
+    {% endfor %}
+</div>
+{% endblock %}

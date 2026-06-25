@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel, field_validator
 
 
@@ -30,7 +32,7 @@ class SenseOut(BaseModel):
     document_id: str
     sense: str | None
     level: int | None
-    definition: str | None
+    definition: Any = None
 
     @field_validator("level")
     @classmethod
@@ -43,7 +45,7 @@ class EntryOut(BaseModel):
     model_config = {"from_attributes": True}
 
     document_id: str
-    text: str | None
+    text: Any = None
 
 
 class LemmaResult(BaseModel):
