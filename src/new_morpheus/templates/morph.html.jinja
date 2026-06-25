@@ -154,3 +154,26 @@
     {% endfor %}
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+function linkifyBiblRefs(preferredLang) {
+    const refs = document.querySelectorAll('a.perseus-reference[data-ref]');
+    if (!refs.length) return;
+
+    refs.forEach(function (el) {
+        const urn = el.dataset.ref;
+        if (!urn || !urn.startsWith('urn:cts:')) return;
+
+        el.href = urn + '/';
+        el.className = "link";
+    });
+}
+
+(function() {
+    const language = new URLSearchParams(window.location.search).get("language");
+
+    linkifyBiblRefs(language)
+})();
+</script>
+{% endblock %}
