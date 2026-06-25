@@ -11,7 +11,7 @@ LemmaKey = tuple[str, int]
 # clojure/src/perseus_morph/lexica/ingest.clj). A language can have more
 # than one; add to its list as more lexica are ingested (e.g. Middle
 # Liddell for "grc").
-LEXICA_BY_LANGUAGE = {"grc": ["lsj"], "lat": ["lewis-short"]}
+LEXICA_BY_LANGUAGE = {"grc": ["LSJ", "Middle Liddell"], "lat": ["lewis-short"]}
 
 # Stable column order for folding a parse's morphological features into a
 # single key, matching perseus-morph.features/feature-columns (and so

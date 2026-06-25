@@ -18,6 +18,7 @@
 {%- endmacro -%}
 
 {% block content %}
+{% set notes = namespace(items=[]) %}
 <div>
     <h1 class="text-xl font-bold mb-4">
         {{ word }}

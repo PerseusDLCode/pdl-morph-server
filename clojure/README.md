@@ -87,11 +87,14 @@ Options:
 ### ingest
 
 To ingest a lexicon, use the `ingest` subcommand. For example, to ingest
-_LSJ_ (under the key `"lsj"`), run:
+_LSJ_ (under the key `"LSJ"`), run:
 
 ```
-clj -M:ingest lsj /path/to/LSJ
+clj -M:ingest LSJ /path/to/LSJ
 ```
+
+While you can use any keys you want, check [morph.py](../src/new_morpheus/morph.py) for
+the expected dictionary names.
 
 Options:
 
