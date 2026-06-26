@@ -1,5 +1,7 @@
 # Notes on AI Use
 
+## Reviving Hopper's Morpheus
+
 AI—specifically, Claude Code and DeepSeek (through OpenCode)—were used
 to resuscitate the parts of Hopper's Morpheus found here. In particular,
 Claude Code was able to identify opportunities for reuse and then refactor
@@ -31,3 +33,18 @@ the morphology lists to Unicode and to refactor the the code that reads
 from and ingests them. This change finally cleared Beta Code from the
 entire Perseus codebase—Beta Code is still accepted as user input, but all
 non-Latin characters are now encoded in Unicode instead.
+
+
+## Reviving Hopper's Translation Alignment
+
+DeepSeek V4 Flash Free, via OpenCode, was used to help render translations
+and alternate editions alongside primary texts. Although the AI made a few
+errors—including an off-by-one error with a list index—it was indispensible
+when it came to studying how Hopper had implemented these complex alignments
+and how we might implement them again.
+
+The alignment algorithm works by first searching for an exact match, e.g.,
+lines 5–55 in Greek and lines 5–55 in English. These matches rarely work,
+so the alignment falls back on the index of the requested lines within the
+work as a whole. This fallback usually produces good results, especially
+with texts that were encoded with alignment in mind.
