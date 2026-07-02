@@ -53,7 +53,7 @@ RUN clj -M:load ../data/latin.morph.jsonl
 # Lexicon keys must match what the server queries (src/new_morpheus/morph.py:
 # LEXICA_BY_LANGUAGE -> "LSJ" for Greek, "lewis-short" for Latin).
 RUN clj -M:ingest LSJ ${LEXICA_DIR}/LSJ_GreekUnicode
-RUN clj -M:ingest lewis-short ${LEXICA_DIR}/lexica/CTS_XML_TEI/perseus/pdllex/lat/ls/lat.ls.perseus-eng2.xml
+RUN clj -M:ingest "Lewis & Short" ${LEXICA_DIR}/lexica/CTS_XML_TEI/perseus/pdllex/lat/ls/lat.ls.perseus-eng2.xml
 
 # aggregate walks a corpus dir (skips non-primary texts itself).
 RUN clj -M:aggregate ../data
