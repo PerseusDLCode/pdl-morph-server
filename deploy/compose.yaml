@@ -1,0 +1,30 @@
+# ==============================================================
+# pdl-morph-server — live FastAPI service.
+#
+# Model: the morphology DB (clojure/morph.db) is baked INTO the
+# image at build time, so there is no data volume to mount and
+# nothing to populate on the host — the container is fully
+# self-contained. Deploying a new build == pulling a new image
+# and recreating this service (see deploy/cron-deploy.sh).
+#
+# Env (IMAGE / IMAGE_TAG shared with cron-deploy.sh; SERVE_PORT
+# is the host-facing port):
+#   IMAGE       image repo   (default below)
+#   IMAGE_TAG   image tag     (default: dev-latest)
+#   SERVE_PORT  host port     (default: 8081)
+# ==============================================================
+services:
+  serve:
+    image: "${IMAGE:-ghcr.io/perseusdlcode/pdl-morph-server}:${IMAGE_TAG:-dev-latest}"
+    # Host SERVE_PORT -> container 5000 (the app's PORT, set in the Dockerfile).
+    ports:
+      - "${SERVE_PORT:-8081}:5000"
+    restart: unless-stopped
+    # FastAPI serves /openapi.json once uvicorn is up; a 200 there means
+    # the app booted and opened the (read-only) DB successfully.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/openapi.json"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

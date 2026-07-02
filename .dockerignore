@@ -1,0 +1,48 @@
+# ==============================================================
+# Docker build context excludes.
+#
+# Goal: send only what the Dockerfile actually needs
+#   - clojure/ sources + deps.edn + resources
+#   - data/ tars + canonical-greekLit / canonical-latinLit corpora
+#   - pyproject.toml, README.md, uv.lock, src/
+# ...and NOT the multi-hundred-MB artifacts that are rebuilt in
+# the image (or are pure dev cruft). Keep this in sync with the
+# large/generated paths in .gitignore.
+# ==============================================================
+
+# --- VCS / CI / editor ---
+.git
+.github
+.gitignore
+.dockerignore
+Dockerfile
+deploy
+docs
+notebooks
+
+# --- Python dev environment & caches ---
+.venv
+.pdm-python
+.pytest_cache
+**/__pycache__
+**/*.pyc
+tests
+
+# --- Stale, gitignored index artifacts (not read at runtime) ---
+src/*.pkl
+src/*.json
+
+# --- Large morph data rebuilt from the .tar archives in-image ---
+# (the .tar files themselves ARE needed, so don't exclude those)
+data/*.jsonl
+data/*.morph.xml
+data/*.ls.perseus-eng2.xml
+data/*.perseus-eng1.xml
+
+# --- Clojure build outputs (morph.db is rebuilt in stage 1) ---
+clojure/morph.db
+clojure/*.db-journal
+clojure/*.db-wal
+clojure/*.db-shm
+clojure/.cpcache
+clojure/.nrepl-port
