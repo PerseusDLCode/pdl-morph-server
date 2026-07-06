@@ -37,7 +37,7 @@
             <span class="text-neutral-400">({{ lemma.sequence_number }})</span>
             {% endif %}
             {% if lemma.document_frequency is not none %}
-            <span class="font-normal text-neutral-400 text-sm">— {{ "%.0f" % (lemma.document_frequency * 100) }}%</span>
+            <span class="font-normal text-neutral-400 text-sm">— {{ "%.0f" % (lemma.document_frequency) }}%</span>
             {% endif %}
         </summary>
 
