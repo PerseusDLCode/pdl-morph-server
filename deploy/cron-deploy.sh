@@ -11,19 +11,19 @@
 #   IMAGE_TAG      image tag       (default: dev-latest)
 #   SERVE_PORT     host port       (default: 8081)   — passed through to compose
 #   CONTAINER_CMD  podman | docker (default: podman)
-#   STATE_FILE     deployed-digest marker (default: /opt/perseus/deployed.digest)
-#   ENV_FILE       optional file to source for the above (default: /opt/perseus/env)
+#   STATE_FILE     deployed-digest marker (default: deployed.digest)
+#   ENV_FILE       optional file to source for the above (default: .env)
 #   GHCR_USER / GHCR_TOKEN  optional; if set, logs in for private pulls
 #
 # Intended to run under flock every 10 minutes:
-#   */10 * * * * /usr/bin/flock -n /opt/perseus/deploy.lock /path/to/cron-deploy.sh >> /opt/perseus/deploy.log 2>&1
+#   */10 * * * * /usr/bin/flock -n deploy.lock /path/to/cron-deploy.sh >> deploy.log 2>&1
 
 set -euo pipefail
 
 log() { echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] $*"; }
 
 # ----- Config -------------------------------------------------------------
-ENV_FILE="${ENV_FILE:-/opt/perseus/env}"
+ENV_FILE="${ENV_FILE:-.env}"
 # shellcheck disable=SC1090
 [ -f "$ENV_FILE" ] && . "$ENV_FILE"
 
@@ -31,7 +31,7 @@ IMAGE="${IMAGE:-ghcr.io/perseusdlcode/pdl-morph-server}"
 IMAGE_TAG="${IMAGE_TAG:-dev-latest}"
 CONTAINER_CMD="${CONTAINER_CMD:-podman}"
 SERVE_PORT="${SERVE_PORT:-8081}"
-STATE_FILE="${STATE_FILE:-/opt/perseus/deployed.digest}"
+STATE_FILE="${STATE_FILE:-deployed.digest}"
 COMPOSE_PROJECT="${COMPOSE_PROJECT:-perseus}"
 COMPOSE_FILE="$(dirname "$0")/compose.yaml"
 IMAGE_REF="${IMAGE}:${IMAGE_TAG}"
