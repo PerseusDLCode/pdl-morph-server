@@ -23,7 +23,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
-          ref: dev
+          ref: main
 
       # ---------------------------------------------------------- #
       # 2. LOGIN TO GHCR
