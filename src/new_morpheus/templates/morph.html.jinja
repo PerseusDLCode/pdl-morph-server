@@ -95,7 +95,7 @@
             <details class="border border-neutral-200 rounded">
                 <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
                     Entries
-                    <span class="font-normal text-neutral-400">({{ lemma.entries|length }} lexicon{{ 's' if lemma.entries|length != 1 else '' }})</span>
+                    <span class="font-normal text-neutral-400">({{ lemma.entries|length }} {{ 'lexica' if lemma.entries|length != 1 else 'lexicon' }})</span>
                 </summary>
                 <div class="px-3 py-2 space-y-1">
                     {% if lemma.entries|length == 0 %}
