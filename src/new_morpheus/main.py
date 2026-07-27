@@ -120,12 +120,24 @@ def api_morph(
 @app.get("/morph", response_class=HTMLResponse)
 def morph(
     request: Request,
-    word: str,
+    word: str | None = None,
     language: str = "grc",
     document_id: str | None = None,
     prior_word: str | None = None,
     session: Session = Depends(get_session),
 ):
+    if word is None:
+        return templates.TemplateResponse(
+            request=request,
+            name="morph.html.jinja",
+            context=dict(
+                word=None,
+                language_code=language,
+                lemmas=[],
+                perseus_hostname=PERSEUS_HOSTNAME,
+            ),
+        )
+
     grouped = lookup_parses(session, word, language)
 
     document_frequencies = {

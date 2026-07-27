@@ -1,6 +1,6 @@
 {% extends "base.html.jinja" %}
 
-{% block title %}{{ word }} – Morpheus{% endblock %}
+{% block title %}{% if word %}{{ word }} – {% endif %}Morpheus{% endblock %}
 
 {%- macro morph_details(parse) -%}
 {%- set ns = namespace(parts=[]) -%}
@@ -20,13 +20,31 @@
 {% block content %}
 {% set notes = namespace(items=[]) %}
 <div>
-    <h1 class="text-xl font-bold mb-4">
-        {{ word }}
-        <span class="font-normal text-neutral-500">({{ language_code }})</span>
-    </h1>
+    <form action="/morph" method="get" class="flex gap-2 mb-4">
+        <input
+            type="text"
+            name="word"
+            value="{{ word or '' }}"
+            placeholder="Enter an inflected form…"
+            autofocus
+            class="input input-bordered grow"
+        />
+        <select name="language" class="select select-bordered">
+            <option value="grc"{% if language_code == "grc" %} selected{% endif %}>Greek</option>
+            <option value="lat"{% if language_code == "lat" %} selected{% endif %}>Latin</option>
+        </select>
+        <button type="submit" class="btn bg-red-800 hover:bg-red-700 text-neutral-50">Search</button>
+    </form>
 
-    {% if lemmas|length == 0 %}
-    <p class="text-neutral-500 italic">No results found.</p>
+    {% if word %}
+        <h1 class="text-xl font-bold mb-4">
+            {{ word }}
+            <span class="font-normal text-neutral-500">({{ language_code }})</span>
+        </h1>
+
+        {% if lemmas|length == 0 %}
+        <p class="text-neutral-500 italic">No results found.</p>
+        {% endif %}
     {% endif %}
 
     {% for lemma in lemmas %}
