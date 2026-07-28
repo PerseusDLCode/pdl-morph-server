@@ -12,7 +12,8 @@
 #   SERVE_PORT     host port       (default: 8081)   — passed through to compose
 #   CONTAINER_CMD  podman | docker (default: podman)
 #   STATE_FILE     deployed-digest marker (default: deployed.digest)
-#   ENV_FILE       optional file to source for the above (default: .env)
+#   ENV_FILE       optional file to source for the above
+#                  (default: <script dir>/.env)
 #   GHCR_USER / GHCR_TOKEN  optional; if set, logs in for private pulls
 #
 # Intended to run under flock every 10 minutes:
@@ -23,7 +24,7 @@ set -euo pipefail
 log() { echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] $*"; }
 
 # ----- Config -------------------------------------------------------------
-ENV_FILE="${ENV_FILE:-.env}"
+ENV_FILE="${ENV_FILE:-$(dirname "$0")/.env}"
 # shellcheck disable=SC1090
 [ -f "$ENV_FILE" ] && . "$ENV_FILE"
 

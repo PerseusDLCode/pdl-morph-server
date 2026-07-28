@@ -16,6 +16,7 @@
 services:
   serve:
     image: "${IMAGE:-ghcr.io/perseusdlcode/pdl-morph-server}:${IMAGE_TAG:-dev-latest}"
+    container_name: "${SERVE_CTR:-morph-serve}"
     # Host SERVE_PORT -> container 5000 (the app's PORT, set in the Dockerfile).
     ports:
       - "${SERVE_PORT:-8081}:5000"
