@@ -37,7 +37,6 @@ src/*.json
 data/*.jsonl
 data/*.morph.xml
 data/*.ls.perseus-eng2.xml
-data/*.perseus-eng1.xml
 
 # --- Clojure build outputs (morph.db is rebuilt in stage 1) ---
 clojure/morph.db
