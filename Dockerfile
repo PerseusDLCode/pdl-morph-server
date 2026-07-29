@@ -54,7 +54,7 @@ RUN clj -M:load ../data/latin.morph.jsonl
 # LEXICA_BY_LANGUAGE -> "LSJ" for Greek, "lewis-short" for Latin).
 RUN clj -M:ingest LSJ ${LEXICA_DIR}/LSJ_GreekUnicode
 RUN clj -M:ingest "Lewis & Short" ${LEXICA_DIR}/lexica/CTS_XML_TEI/perseus/pdllex/lat/ls/lat.ls.perseus-eng2.xml
-RUN clj -M:ingest "Middle Liddell" ../data/viaf66541464.001.perseus-eng1.xml
+RUN clj -M:ingest "Middle Liddell" ../../data/viaf66541464.001.perseus-eng1.xml
 
 # aggregate walks a corpus dir (skips non-primary texts itself).
 RUN clj -M:aggregate ../data
