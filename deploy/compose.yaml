@@ -11,7 +11,7 @@
 # is the host-facing port):
 #   IMAGE       image repo   (default below)
 #   IMAGE_TAG   image tag     (default: dev-latest)
-#   SERVE_PORT  host port     (default: 8000)
+#   SERVE_PORT  host port     (default: 5000)
 # ==============================================================
 services:
   serve:
@@ -19,7 +19,7 @@ services:
     container_name: "${SERVE_CTR:-morph-serve}"
     # Host SERVE_PORT -> container 5000 (the app's PORT, set in the Dockerfile).
     ports:
-      - "${SERVE_PORT:-8000}:5000"
+      - "${SERVE_PORT:-5000}:5000"
     restart: unless-stopped
     # FastAPI serves /openapi.json once uvicorn is up; a 200 there means
     # the app booted and opened the (read-only) DB successfully.
