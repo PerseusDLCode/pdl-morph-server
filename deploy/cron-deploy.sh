@@ -10,6 +10,7 @@
 #   IMAGE          image repo     (default: ghcr.io/perseusdlcode/pdl-morph-server)
 #   IMAGE_TAG      image tag       (default: dev-latest)
 #   SERVE_PORT     host port       (default: 8081)   — passed through to compose
+#   SERVE_CTR      container name  (default: morph-serve) — must match compose.yaml
 #   CONTAINER_CMD  podman | docker (default: podman)
 #   STATE_FILE     deployed-digest marker (default: deployed.digest)
 #   ENV_FILE       optional file to source for the above
@@ -32,13 +33,14 @@ IMAGE="${IMAGE:-ghcr.io/perseusdlcode/pdl-morph-server}"
 IMAGE_TAG="${IMAGE_TAG:-dev-latest}"
 CONTAINER_CMD="${CONTAINER_CMD:-podman}"
 SERVE_PORT="${SERVE_PORT:-8081}"
+SERVE_CTR="${SERVE_CTR:-morph-serve}"
 STATE_FILE="${STATE_FILE:-deployed.digest}"
 COMPOSE_PROJECT="${COMPOSE_PROJECT:-perseus}"
 COMPOSE_FILE="$(dirname "$0")/compose.yaml"
 IMAGE_REF="${IMAGE}:${IMAGE_TAG}"
 
 # compose.yaml reads these:
-export IMAGE IMAGE_TAG SERVE_PORT
+export IMAGE IMAGE_TAG SERVE_PORT SERVE_CTR
 
 compose() { ${CONTAINER_CMD} compose -f "$COMPOSE_FILE" -p "$COMPOSE_PROJECT" "$@"; }
 
@@ -76,7 +78,11 @@ log "Recreating '${COMPOSE_PROJECT}' serve..."
 compose up -d --force-recreate serve
 
 # ----- 4. Verify it comes up (healthy if a healthcheck is defined) --------
-CID=$(compose ps -q serve || echo "")
+# compose.yaml pins container_name to SERVE_CTR, so we can address it
+# directly; podman-compose's `ps` subcommand (unlike `up`) doesn't accept
+# a service-name argument, so `compose ps -q serve` fails with
+# "unrecognized arguments: serve".
+CID=$(${CONTAINER_CMD} inspect --format '{{.Id}}' "$SERVE_CTR" 2>/dev/null || echo "")
 if [ -n "$CID" ]; then
   for _ in $(seq 1 15); do
     STATUS=$(${CONTAINER_CMD} inspect \
