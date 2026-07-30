@@ -56,6 +56,12 @@ RUN clj -M:ingest LSJ ${LEXICA_DIR}/LSJ_GreekUnicode
 RUN clj -M:ingest "Lewis & Short" ${LEXICA_DIR}/lexica/CTS_XML_TEI/perseus/pdllex/lat/ls/lat.ls.perseus-eng2.xml
 RUN clj -M:ingest "Middle Liddell" ../data/viaf66541464.001.perseus-eng1.xml
 
+# Plain-text Logeion short defs (one-line glosses shown in the headword
+# summary; see src/new_morpheus/morph.py SHORT_DEF_DOCUMENT_ID). Detected
+# by extension, not TEI XML -- see lexica/shortdef.clj.
+RUN clj -M:ingest Logeion-Greek-Shortdef ../data/ShortdefsforOKLemmas.txt
+RUN clj -M:ingest Logeion-Latin-Shortdef ../data/LogeionLatinshortdefs.txt
+
 # aggregate walks a corpus dir (skips non-primary texts itself).
 RUN clj -M:aggregate ../data
 

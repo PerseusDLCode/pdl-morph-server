@@ -93,6 +93,16 @@ _LSJ_ (under the key `"LSJ"`), run:
 clj -M:ingest LSJ /path/to/LSJ
 ```
 
+The file argument can also be a plain-text short-def file (one `lemma
+<whitespace> definition` pair per line, e.g. the Logeion exports under
+`../data/`) instead of TEI lexicon XML -- detected by its `.txt`/`.tsv`
+extension. For example:
+
+```
+clj -M:ingest Logeion-Greek-Shortdef ../data/ShortdefsforOKLemmas.txt
+clj -M:ingest Logeion-Latin-Shortdef ../data/LogeionLatinshortdefs.txt
+```
+
 While you can use any keys you want, check [morph.py](../src/new_morpheus/morph.py) for
 the expected dictionary names.
 

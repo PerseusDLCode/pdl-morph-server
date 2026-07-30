@@ -12,8 +12,17 @@ LemmaKey = tuple[str, int]
 # than one; add to its list as more lexica are ingested (e.g. Middle
 # Liddell for "grc").
 LEXICA_BY_LANGUAGE = {
-    "grc": ["LSJ", "Middle Liddell"],
-    "lat": ["lewis-short", "Lewis & Short"],
+    "grc": ["LSJ", "Middle Liddell", "Logeion-Greek-Shortdef"],
+    "lat": ["lewis-short", "Lewis & Short", "Logeion-Latin-Shortdef"],
+}
+
+# Which of a language's LEXICA_BY_LANGUAGE document_id holds the
+# one-line Logeion short definition to surface in the headword summary
+# (see main.py's short_definition), as opposed to the fuller LSJ/Lewis &
+# Short glosses also present in lookup_senses' results.
+SHORT_DEF_DOCUMENT_ID = {
+    "grc": "Logeion-Greek-Shortdef",
+    "lat": "Logeion-Latin-Shortdef",
 }
 
 # Stable column order for folding a parse's morphological features into a
@@ -157,6 +166,19 @@ def lookup_senses(
         Sense.lemma == f"entry={key}",
     )
     return list(session.exec(statement))
+
+
+def short_definition(senses: list[Sense], language_code: str) -> str | None:
+    """Picks the one-line Logeion gloss out of `senses` (as returned by
+    lookup_senses), i.e. the sense whose document_id is
+    SHORT_DEF_DOCUMENT_ID[language_code], if any."""
+    document_id = SHORT_DEF_DOCUMENT_ID.get(language_code)
+    if document_id is None:
+        return None
+    return next(
+        (sense.definition for sense in senses if sense.document_id == document_id),
+        None,
+    )
 
 
 def lookup_entries(

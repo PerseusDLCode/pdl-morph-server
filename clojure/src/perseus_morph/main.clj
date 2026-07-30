@@ -6,13 +6,14 @@
    Usage:
      clj -M -m perseus-morph.main load      [options] <morph jsonl file>
      clj -M -m perseus-morph.main aggregate  [options] <corpus dir>
-     clj -M -m perseus-morph.main ingest     [options] <lexicon id> <lexicon xml file>
+     clj -M -m perseus-morph.main ingest     [options] <lexicon id> <lexicon xml or short-def txt file>
      clj -M -m perseus-morph.main help       [subcommand]"
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.tools.cli :as cli]
             [next.jdbc :as jdbc]
             [perseus-morph.lexica.core :as lexica]
+            [perseus-morph.lexica.shortdef :as shortdef]
             [perseus-morph.loader.core :as loader]
             [perseus-morph.migrations :as migrations]
             [perseus-morph.sqlite :as sqlite]
@@ -51,7 +52,8 @@
 Subcommands:
   load       Load a morph JSONL file into the database.
   aggregate  Walk a corpus directory and aggregate frequency counts.
-  ingest     Load a TEI lexicon XML file's senses into the database.
+  ingest     Load a TEI lexicon XML file's senses, or a plain-text
+             short-def file's lemma/definition pairs, into the database.
   help       Print this message or help for a specific subcommand.
 
 Run `clj -M -m perseus-morph.main help <subcommand>` for subcommand details.")
@@ -59,20 +61,37 @@ Run `clj -M -m perseus-morph.main help <subcommand>` for subcommand details.")
 (def ^:private subcommand-summaries
   {"load"      "clj -M -m perseus-morph.main load [options] <morph jsonl file>"
    "aggregate" "clj -M -m perseus-morph.main aggregate [options] <corpus dir>"
-   "ingest"    "clj -M -m perseus-morph.main ingest [options] <lexicon id> <lexicon xml file>"})
+   "ingest"    "clj -M -m perseus-morph.main ingest [options] <lexicon id> <lexicon xml or short-def txt file>"})
 
 ;; ---------------------------------------------------------------------------
 ;; Per-subcommand dispatch
 ;; ---------------------------------------------------------------------------
+
+(defn- lexicon-file?
+  [file]
+  (let [name (str/lower-case (.getName file))]
+    (or (str/ends-with? name ".xml")
+        (str/ends-with? name ".txt")
+        (str/ends-with? name ".tsv"))))
 
 (defn- xml-files
   [path]
   (let [file (io/file path)]
     (if (.isDirectory file)
       (->> (.listFiles file)
-           (filter #(str/ends-with? (str/lower-case (.getName %)) ".xml"))
+           (filter lexicon-file?)
            (sort-by #(.getName %)))
       [file])))
+
+(defn- load-lexicon-file!
+  "Dispatches to lexica/load! (TEI XML) or shortdef/load! (plain-text
+   \"lemma <whitespace> definition\" files, e.g. the Logeion short-def
+   exports) based on `file`'s extension."
+  [db lexicon-id file]
+  (let [name (str/lower-case (.getName (io/file file)))]
+    (if (or (str/ends-with? name ".txt") (str/ends-with? name ".tsv"))
+      (shortdef/load! db lexicon-id file)
+      (lexica/load! db lexicon-id file))))
 
 (defn- run-load
   [args]
@@ -157,7 +176,7 @@ Run `clj -M -m perseus-morph.main help <subcommand>` for subcommand details.")
         (let [files (xml-files filename)
               total (reduce (fn [acc file]
                               (println "Loading" (str file) "as lexicon" lexicon-id "into" (:db options))
-                              (let [{:keys [senses]} (lexica/load! db lexicon-id file)]
+                              (let [{:keys [senses]} (load-lexicon-file! db lexicon-id file)]
                                 (+ acc senses)))
                             0
                             files)]

@@ -55,6 +55,7 @@ class LemmaResult(BaseModel):
     senses: list[SenseOut] = []
     entries: list[EntryOut] = []
     document_frequency: float | None = None
+    short_definition: Any = None
 
 
 class MorphResponse(BaseModel):

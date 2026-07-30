@@ -57,6 +57,19 @@
             {% if lemma.document_frequency is not none %}
             <span class="font-normal text-neutral-400 text-sm">— {{ "%.0f" % (lemma.document_frequency) }}%</span>
             {% endif %}
+            {% if lemma.short_definition %}
+            <span class="font-normal text-neutral-600 text-sm">
+                {%- if lemma.short_definition is string -%}
+                    {{ lemma.short_definition }}
+                {%- else -%}
+                    {% for element in lemma.short_definition %}
+                        {% with text_container=element %}
+                            {% include 'components/ReadableTextContainer.html.jinja' %}
+                        {% endwith %}
+                    {% endfor %}
+                {%- endif -%}
+            </span>
+            {% endif %}
         </summary>
 
         <div class="px-4 py-2 space-y-2">

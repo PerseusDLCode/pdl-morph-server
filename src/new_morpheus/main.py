@@ -19,6 +19,7 @@ from .morph import (
     lookup_senses,
     prior_frequency_scores,
     select_winning_parse,
+    short_definition,
     word_frequency_scores,
 )
 from .schemas import EntryOut, LemmaResult, MorphResponse, ParseOut, SenseOut
@@ -81,38 +82,33 @@ def api_morph(
         prior_frequency_scores(session, language, grouped, prior_grouped),
     )
 
-    lemmas = [
-        LemmaResult(
-            headword=headword,
-            sequence_number=sequence_number,
-            parses=[
-                ParseOut.model_validate(parse).model_copy(
-                    update={"is_winner": parse.id == winner_id}
-                )
-                for parse in parses
-            ],
-            senses=[
-                SenseOut.model_validate(sense)
-                for sense in lookup_senses(
-                    session,
-                    language,
-                    headword,
-                    sequence_number,
-                )
-            ],
-            entries=[
-                EntryOut.model_validate(entry)
-                for entry in lookup_entries(
-                    session,
-                    language,
-                    headword,
-                    sequence_number,
-                )
-            ],
-            document_frequency=document_frequencies[(headword, sequence_number)],
+    lemmas = []
+    for (headword, sequence_number), parses in grouped.items():
+        senses = lookup_senses(session, language, headword, sequence_number)
+        lemmas.append(
+            LemmaResult(
+                headword=headword,
+                sequence_number=sequence_number,
+                parses=[
+                    ParseOut.model_validate(parse).model_copy(
+                        update={"is_winner": parse.id == winner_id}
+                    )
+                    for parse in parses
+                ],
+                senses=[SenseOut.model_validate(sense) for sense in senses],
+                entries=[
+                    EntryOut.model_validate(entry)
+                    for entry in lookup_entries(
+                        session,
+                        language,
+                        headword,
+                        sequence_number,
+                    )
+                ],
+                document_frequency=document_frequencies[(headword, sequence_number)],
+                short_definition=short_definition(senses, language),
+            )
         )
-        for (headword, sequence_number), parses in grouped.items()
-    ]
 
     return MorphResponse(word=word, language_code=language, lemmas=lemmas)
 
@@ -154,42 +150,41 @@ def morph(
         prior_frequency_scores(session, language, grouped, prior_grouped),
     )
 
-    lemmas = [
-        LemmaResult(
-            headword=headword,
-            sequence_number=sequence_number,
-            parses=[
-                ParseOut.model_validate(parse).model_copy(
-                    update={"is_winner": parse.id == winner_id}
-                )
-                for parse in parses
-            ],
-            senses=[
-                SenseOut.model_validate(sense).model_copy(
-                    update={"definition": _parse_tei_text(sense.definition)}
-                )
-                for sense in lookup_senses(
-                    session,
-                    language,
-                    headword,
-                    sequence_number,
-                )
-            ],
-            entries=[
-                EntryOut.model_validate(entry).model_copy(
-                    update={"text": _parse_tei_text(entry.text)}
-                )
-                for entry in lookup_entries(
-                    session,
-                    language,
-                    headword,
-                    sequence_number,
-                )
-            ],
-            document_frequency=document_frequencies[(headword, sequence_number)],
+    lemmas = []
+    for (headword, sequence_number), parses in grouped.items():
+        senses = lookup_senses(session, language, headword, sequence_number)
+        short_def = short_definition(senses, language)
+        lemmas.append(
+            LemmaResult(
+                headword=headword,
+                sequence_number=sequence_number,
+                parses=[
+                    ParseOut.model_validate(parse).model_copy(
+                        update={"is_winner": parse.id == winner_id}
+                    )
+                    for parse in parses
+                ],
+                senses=[
+                    SenseOut.model_validate(sense).model_copy(
+                        update={"definition": _parse_tei_text(sense.definition)}
+                    )
+                    for sense in senses
+                ],
+                entries=[
+                    EntryOut.model_validate(entry).model_copy(
+                        update={"text": _parse_tei_text(entry.text)}
+                    )
+                    for entry in lookup_entries(
+                        session,
+                        language,
+                        headword,
+                        sequence_number,
+                    )
+                ],
+                document_frequency=document_frequencies[(headword, sequence_number)],
+                short_definition=_parse_tei_text(short_def),
+            )
         )
-        for (headword, sequence_number), parses in grouped.items()
-    ]
 
     return templates.TemplateResponse(
         request=request,
