@@ -126,12 +126,12 @@ def morph(
         return templates.TemplateResponse(
             request=request,
             name="morph.html.jinja",
-            context=dict(
-                word=None,
-                language_code=language,
-                lemmas=[],
-                perseus_hostname=PERSEUS_HOSTNAME,
-            ),
+            context={
+                "word": None,
+                "language_code": language,
+                "lemmas": [],
+                "perseus_hostname": PERSEUS_HOSTNAME,
+            },
         )
 
     grouped = lookup_parses(session, word, language)
@@ -189,12 +189,12 @@ def morph(
     return templates.TemplateResponse(
         request=request,
         name="morph.html.jinja",
-        context=dict(
-            word=word,
-            language_code=language,
-            lemmas=lemmas,
-            perseus_hostname=PERSEUS_HOSTNAME,
-        ),
+        context={
+            "word": word,
+            "language_code": language,
+            "lemmas": lemmas,
+            "perseus_hostname": PERSEUS_HOSTNAME,
+        },
     )
 
 
@@ -203,7 +203,7 @@ def dev() -> None:
     uvicorn.run(
         "new_morpheus.main:app",
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
+        port=int(os.environ.get("PORT", "5000")),
         reload=True,
     )
 
@@ -213,6 +213,6 @@ def serve() -> None:
     uvicorn.run(
         "new_morpheus.main:app",
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 8000)),
-        workers=int(os.environ.get("WEB_CONCURRENCY", 4)),
+        port=int(os.environ.get("PORT", "8000")),
+        workers=int(os.environ.get("WEB_CONCURRENCY", "4")),
     )
