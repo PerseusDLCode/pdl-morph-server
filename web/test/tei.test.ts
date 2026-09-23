@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseTeiElement } from "../src/tei/parser.js";
 import { parseTeiText } from "../src/tei/parseTeiText.js";
+import type { TeiElement, TeiNode, TeiTextRun } from "../src/tei/types.js";
 
 // Expected outputs captured directly from the real Python
 // kodon_py.tei_parser.TEIParser (the port's source of truth), not
@@ -89,6 +90,30 @@ describe("parseTeiElement / parseTeiText", () => {
         urn: null,
       },
     ]);
+  });
+
+  // Unlike the rest of this file, these cases deliberately diverge from
+  // the Python original, which treated every punctuation mark and symbol
+  // the same way (see NO_SPACE_BEFORE/NO_SPACE_AFTER in src/tei/parser.ts).
+  // Each input is trimmed from a real LSJ entry.
+  it.each([
+    // opening brackets: space before, none after
+    ['<orth>ἄλφα</orth>(q.v.),<gen lang="greek">τό</gen>', "ἄλφα (q.v.), τό"],
+    ['<bibl><title>AP</title><biblScope>6.5</biblScope></bibl>(<author>Phil.</author>)', "AP 6.5 (Phil.)"],
+    ['<orth>ἀρᾰβέω</orth>[<pron>ᾰρ</pron>]', "ἀρᾰβέω [ᾰρ]"],
+    // math symbols: space on both sides
+    ['<foreign lang="greek">ά</foreign><abbr>=</abbr><bibl><biblScope>1</biblScope></bibl>', "ά = 1"],
+    // dashes: no space before, but one after (a prefix is still a word)
+    ['properly<foreign lang="greek">ἁ-</foreign>since', "properly ἁ- since"],
+    // closing punctuation: none before, one after (unchanged from the original)
+    ['<foreign lang="greek">πρῶτος</foreign>,<foreign lang="greek">ἕν</foreign>', "πρῶτος, ἕν"],
+  ])("spaces %s as %j", (xml, expected) => {
+    const flatten = (node: TeiNode): string =>
+      node.tagname === "text_run"
+        ? (node as TeiTextRun).content
+        : (node as TeiElement).children.map(flatten).join("");
+    const parsed = parse(`<span>${xml}</span>`);
+    expect(Array.isArray(parsed) && parsed.map(flatten).join("")).toBe(expected);
   });
 
   it("builds citable-part URNs from ancestors that have both type and n", () => {

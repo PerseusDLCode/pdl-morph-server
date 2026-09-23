@@ -8,16 +8,8 @@
   const n = $derived(node.n as string | undefined);
 </script>
 
-{#if n}
-  <a href="#{n}" data-ref={n} class="perseus-reference tei-bibl">
-    {#each node.children as child}
-      <ReadableTextContainer node={child} inheritedUrn={urn} />
-    {/each}
-  </a>
-{:else}
-  <span class="tei-bibl">
-    {#each node.children as child}
-      <ReadableTextContainer node={child} inheritedUrn={urn} />
-    {/each}
-  </span>
-{/if}
+<span data-ref={n ?? undefined} class="tei-bibl">
+  {#each node.children as child}
+    <ReadableTextContainer node={child} inheritedUrn={urn} />
+  {/each}
+</span>

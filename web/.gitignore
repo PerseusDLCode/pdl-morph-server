@@ -1,3 +1,4 @@
 node_modules
 dist
-public/morph.db
+static/morph.db
+.svelte-kit

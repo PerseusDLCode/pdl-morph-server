@@ -6,15 +6,19 @@
     "node": ">=22.5.0"
   },
   "scripts": {
-    "dev": "vite",
+    "prepare": "svelte-kit sync || echo \"\"",
+    "dev": "vite dev",
     "build": "vite build",
+    "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit && svelte-check --tsconfig ./tsconfig.json",
+    "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "build:harness": "scripts/build-harness.sh",
     "verify:httpvfs": "node scripts/verify-httpvfs-browser.mjs",
     "e2e-check": "node scripts/e2e-check.mjs"
   },
   "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@types/node": "^26.6.0",
     "@types/sql.js": "^1.4.11",

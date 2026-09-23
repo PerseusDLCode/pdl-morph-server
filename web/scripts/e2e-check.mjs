@@ -3,7 +3,7 @@
 // Chromium) against the Vite dev server, submits a word, and confirms
 // the result renders without console errors.
 //
-// Usage: pnpm exec vite --port 5183 &   (with web/public/morph.db symlinked to clojure/morph.db)
+// Usage: pnpm exec vite --port 5183 &   (with web/static/morph.db symlinked to clojure/morph.db)
 //        node scripts/e2e-check.mjs
 import { chromium } from "playwright";
 
@@ -21,9 +21,17 @@ async function main() {
   });
   page.on("pageerror", (err) => consoleErrors.push(String(err)));
 
+  // Deep link: a lookup should run straight from /morph's query params.
+  await page.goto(`${URL}/morph?word=${encodeURIComponent("λόγος")}&language=grc`);
+  await page.waitForSelector("details summary", { timeout: 30_000 });
+  console.log(`deep-link headword: ${await page.textContent("details summary span")}`);
+
+  // Form submission: should navigate to (and render) /morph?word=...
   await page.goto(URL);
   await page.fill('input[type="text"]', "λαμβάνω");
   await page.click('button[type="submit"]');
+  await page.waitForURL(/\/morph\?word=/, { timeout: 10_000 });
+  console.log(`form navigated to: ${decodeURIComponent(page.url())}`);
 
   await page.waitForSelector("details summary", { timeout: 30_000 });
   await page.waitForFunction(

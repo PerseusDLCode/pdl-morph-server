@@ -20,7 +20,7 @@ nginx).
 ```sh
 cd web
 pnpm install
-mkdir -p public && ln -sf ../../clojure/morph.db public/morph.db
+mkdir -p static && ln -sf ../../clojure/morph.db static/morph.db
 pnpm dev
 ```
 

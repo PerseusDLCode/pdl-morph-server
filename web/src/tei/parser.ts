@@ -12,9 +12,20 @@ import type { TeiElement, TeiNode, TeiTextRun } from "./types.js";
 // has no observable effect on this function's output.
 const PARATEXTUAL_ELEMENTS = new Set(["note", "noteGrp", "speaker"]);
 
-// unicodedata.category(c)[0] in ("P", "S") -- punctuation or symbol,
-// which JS's \p{P}/\p{S} Unicode property escapes match directly.
-const PUNCTUATION_OR_SYMBOL = /^[\p{P}\p{S}]/u;
+// Where the source has no whitespace between two runs, whether a
+// synthetic space belongs there depends on which side of the gap the
+// punctuation is on. (The Python original treated all of \p{P}/\p{S}
+// alike -- never a space before any of them, always one after -- which
+// produced `ἄλφα(q.v.)`, `ά= εἷς` and `( Eust.` in LSJ entries.)
+//
+// No space before closing/trailing punctuation (`)`, `]`, `,`, `.`, `·`,
+// closing quotes), dashes, modifier symbols (`ˆ`) or combining marks...
+const NO_SPACE_BEFORE = /^[\p{Pe}\p{Pf}\p{Po}\p{Pd}\p{Sk}\p{M}]/u;
+// ...and none after opening punctuation (`(`, `[`, opening quotes).
+// Anything else -- including math symbols like `=`, and dashes, which
+// LSJ follows with a word in a separate element (`<foreign>ἁ-</foreign>since`)
+// -- gets a space after it.
+const NO_SPACE_AFTER = /^[\p{Ps}\p{Pi}]$/u;
 
 function isSpace(ch: string | undefined): boolean {
   return ch !== undefined && /^\s$/u.test(ch);
@@ -115,7 +126,8 @@ export function parseTeiElement(root: Element, baseUrn: string): TeiElement[] {
         primaryText.length > 0 &&
         !isSpace(primaryText[primaryText.length - 1]) &&
         !isSpace(normalizedContent[0]) &&
-        !PUNCTUATION_OR_SYMBOL.test(normalizedContent[0] as string)
+        !NO_SPACE_AFTER.test(primaryText.slice(-1)) &&
+        !NO_SPACE_BEFORE.test(normalizedContent)
       ) {
         // The source has no whitespace at all here (e.g. `<quote>foo</quote><bibl>bar</bibl>`),
         // but primaryText still needs a separating space -- and so does the
