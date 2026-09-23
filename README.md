@@ -1,71 +1,35 @@
-# new-morpheus
+# pdl-morph-server
 
-HTTP API for morphological lookups, reading from `morph.db` (the SQLite
-database produced by the Clojure ingestion pipeline in `../clojure`).
+A client-side morphological lookup tool: all querying, disambiguation
+scoring, and TEI-dictionary rendering happens in the browser, against
+`morph.db` (the SQLite database produced by the Clojure ingestion
+pipeline in `clojure/`) queried in place over HTTP range requests. There
+is no application server -- see `web/README.md` for the frontend
+(Svelte + `sql.js-httpvfs`) and `deploy/nginx.conf` for how `morph.db` and
+the built frontend are served in production.
 
-## Setup
+## Building the database
 
-Requires the `morph.db` file to exist at `../clojure/morph.db` (run the
-Clojure ingestion pipeline first if it doesn't), migrated to the current
-schema (all subcommands — `load`, `aggregate`, `ingest` — call
-`migrations/migrate!` automatically; see `clojure/README.md`) and with
-lexica ingested via `clj -M:ingest` so the `senses`/`entries` tables
-backing the API response are populated.
+See `clojure/README.md` for the `load`/`aggregate`/`ingest` pipeline that
+produces `clojure/morph.db`. `Dockerfile` runs the full pipeline (stage 1)
+and the frontend build (stage 2) to produce the deployed image (stage 3,
+nginx).
 
-```sh
-uv sync
-```
-
-## Running
-
-Dev server (autoreload, binds to `127.0.0.1`):
+## Running the frontend locally
 
 ```sh
-uv run new-morpheus-dev
+cd web
+pnpm install
+mkdir -p public && ln -sf ../../clojure/morph.db public/morph.db
+pnpm dev
 ```
 
-Production server (binds to `0.0.0.0`, multiple workers):
+See `web/README.md` for details and other scripts (tests, typecheck,
+parity-checking against a reference server, browser-based verification).
 
-```sh
-uv run new-morpheus
-```
+## `scripts/`
 
-Both respect `PORT` (default `8000`); the production server also respects
-`WEB_CONCURRENCY` (default `4`) for worker count.
-
-## Tests
-
-```sh
-uv run pytest
-```
-
-## API
-
-`GET /morph?word=<word>&language=<language_code>&document_id=<optional>&prior_word=<optional>`
-
-Returns the candidate lemmas and parses for `word`. `word` should be Unicode
-(e.g. `μῆνιν`), the encoding `parses.form` is now stored in for every
-language; Beta Code (e.g. `mh=nin`) is still accepted as a fallback for
-Greek -- if the Unicode lookup comes up empty, it's retried once converted
-to Unicode via the `beta_code` package (see `morph.lookup_parses`). Each
-lemma includes its `senses` (short, per-sense glosses from the ingested
-lexicon, e.g. LSJ for Greek) and `entries` (the full text of that lexicon's
-whole dictionary article for the lemma, so the UI doesn't need to re-read
-the source XML for a complete view). If `document_id` is given, each lemma
-also includes its `document_frequency` (weighted frequency of that lemma
-within the given document), or `null` if none is recorded. `document_id`
-and `prior_word` (the preceding word in the text, also Unicode) also feed
-disambiguation: whichever candidate parse scores highest once corpus-wide
-form frequency, in-document lemma frequency, and prior-word bigram
-frequency are averaged together gets `is_winner: true`.
-
-Example: looking up μῆνιν (`mh=nin`), the first word of the *Iliad*
-(tlg0012.tlg001.perseus-grc2:1.1) -- document_id is whole-document only, so
-the API has no notion of "line 1.1" beyond it being a word in that document:
-
-```sh
-curl -G "http://127.0.0.1:8000/morph" \
-  --data-urlencode "word=μῆνιν" \
-  --data-urlencode "language=grc" \
-  --data-urlencode "document_id=tlg0012.tlg001.perseus-grc2"
-```
+Standalone one-off data-prep scripts (Beta Code -> Unicode conversion for
+the morph/lexicon source XML consumed by the Clojure pipeline). Not part
+of the runtime app; `uv sync` installs their two dependencies
+(`beta-code`, `lxml`).

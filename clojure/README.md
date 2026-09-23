@@ -103,8 +103,8 @@ clj -M:ingest Logeion-Greek-Shortdef ../data/ShortdefsforOKLemmas.txt
 clj -M:ingest Logeion-Latin-Shortdef ../data/LogeionLatinshortdefs.txt
 ```
 
-While you can use any keys you want, check [morph.py](../src/new_morpheus/morph.py) for
-the expected dictionary names.
+While you can use any keys you want, check [db.ts](../web/src/morph/db.ts)'s
+`LEXICA_BY_LANGUAGE` for the expected dictionary names.
 
 Options:
 

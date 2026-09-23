@@ -123,11 +123,11 @@
         (is (= 2 (:token-count result)))
         (is (= "tlg0012.tlg001.perseus-grc2" (:document-id result)))
         (is (= 1.0 (:count (jdbc/execute-one! db ["SELECT count FROM morph_frequencies
-                                                    WHERE part_of_speech = 'noun'"]
+                                                    WHERE feature_key = 'noun'"]
                                                {:builder-fn rs/as-unqualified-maps}))))
         (is (= 1.0 (:count (jdbc/execute-one! db ["SELECT count FROM prior_frequencies
-                                                    WHERE previous_part_of_speech = 'noun'
-                                                      AND current_part_of_speech = 'verb'"]
+                                                    WHERE previous_feature_key = 'noun'
+                                                      AND current_feature_key = 'verb'"]
                                                {:builder-fn rs/as-unqualified-maps}))))
 (is (= 1.0 (:weighted_frequency
             (jdbc/execute-one! db ["SELECT df.weighted_frequency FROM document_frequencies df
@@ -169,5 +169,5 @@
         (is (= 2 (:files-processed result)))
         (is (= 3 (:tokens-processed result)))
         (is (= 2.0 (:count (jdbc/execute-one! db ["SELECT count FROM morph_frequencies
-                                                    WHERE part_of_speech = 'noun'"]
+                                                    WHERE feature_key = 'noun'"]
                                                {:builder-fn rs/as-unqualified-maps}))))))))

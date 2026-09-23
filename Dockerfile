@@ -1,11 +1,16 @@
 # ================================================================
 # pdl-morph-server
 #
-# Two-stage build:
-#   1. builder  — uses the official Clojure image to run the
-#                 ingestion pipeline and produce clojure/morph.db
-#   2. runtime  — lean Python image that serves the live FastAPI
-#                 app (uv run new-morpheus) against that DB
+# Three-stage build:
+#   1. builder     — uses the official Clojure image to run the
+#                     ingestion pipeline and produce clojure/morph.db
+#   2. web-builder — builds the Svelte frontend (web/), which queries
+#                     morph.db itself, in-browser, over HTTP range
+#                     requests (see web/src/morph/httpVfsDb.ts)
+#   3. runtime     — nginx, serving the built frontend + morph.db as
+#                     static files (see deploy/nginx.conf); no
+#                     application server needed, since nothing
+#                     server-side runs queries anymore
 # ================================================================
 
 # ================================================================
@@ -43,21 +48,21 @@ RUN tar -xf data/latin.morph.jsonl.tar -C data
 # ----------------------------------------------------------------
 # Run the ingestion pipeline. Each `clj -M:<alias>` writes to
 # ./morph.db in the working dir, so run everything from clojure/
-# to produce clojure/morph.db (the path the server reads at runtime).
+# to produce clojure/morph.db (the file served statically in stage 3).
 # ----------------------------------------------------------------
 WORKDIR /app/clojure
 
 RUN clj -M:load ../data/greek.morph.jsonl
 RUN clj -M:load ../data/latin.morph.jsonl
 
-# Lexicon keys must match what the server queries (src/new_morpheus/morph.py:
+# Lexicon keys must match what the frontend queries (web/src/morph/db.ts:
 # LEXICA_BY_LANGUAGE -> "LSJ" for Greek, "lewis-short" for Latin).
 RUN clj -M:ingest LSJ ${LEXICA_DIR}/LSJ_GreekUnicode
 RUN clj -M:ingest "Lewis & Short" ${LEXICA_DIR}/lexica/CTS_XML_TEI/perseus/pdllex/lat/ls/lat.ls.perseus-eng2.xml
 RUN clj -M:ingest "Middle Liddell" ../data/viaf66541464.001.perseus-eng1.xml
 
 # Plain-text Logeion short defs (one-line glosses shown in the headword
-# summary; see src/new_morpheus/morph.py SHORT_DEF_DOCUMENT_ID). Detected
+# summary; see web/src/morph/db.ts SHORT_DEF_DOCUMENT_ID). Detected
 # by extension, not TEI XML -- see lexica/shortdef.clj.
 RUN clj -M:ingest Logeion-Greek-Shortdef ../data/ShortdefsforOKLemmas.txt
 RUN clj -M:ingest Logeion-Latin-Shortdef ../data/LogeionLatinshortdefs.txt
@@ -66,52 +71,27 @@ RUN clj -M:ingest Logeion-Latin-Shortdef ../data/LogeionLatinshortdefs.txt
 RUN clj -M:aggregate ../data
 
 # ================================================================
-# Stage 2 — runtime: the live FastAPI server
+# Stage 2 — build the Svelte frontend
 # ================================================================
-FROM python:3.12-slim AS runtime
+FROM node:22-slim AS web-builder
 
-# git is required because uv resolves kodon-py from a git source
-# (see [tool.uv.sources] in pyproject.toml); curl + ca-certificates
-# are for installing uv.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN corepack enable
 
-# ----------------------------------------------------------------
-# uv
-# ----------------------------------------------------------------
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:${PATH}"
+WORKDIR /app/web
 
-WORKDIR /app
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
-# ----------------------------------------------------------------
-# Python dependencies (cached layer — only re-runs when the
-# manifests change).
-# ----------------------------------------------------------------
-COPY pyproject.toml README.md uv.lock ./
+COPY web/ ./
+RUN pnpm build
 
-ENV UV_PYTHON=3.13
-RUN uv sync --no-dev --no-install-project
+# ================================================================
+# Stage 3 — runtime: nginx serving static files, no app server
+# ================================================================
+FROM nginx:alpine AS runtime
 
-# ----------------------------------------------------------------
-# Source code + install the project (registers new-morpheus*).
-# ----------------------------------------------------------------
-COPY src/ src/
-RUN uv sync --no-dev
+COPY deploy/nginx.conf /etc/nginx/nginx.conf
+COPY --from=web-builder /app/web/dist /usr/share/nginx/html
+COPY --from=builder /app/clojure/morph.db /usr/share/nginx/html/morph.db
 
-# ----------------------------------------------------------------
-# The morphology DB built in stage 1. db.py reads it from
-# <repo root>/clojure/morph.db, i.e. /app/clojure/morph.db.
-# ----------------------------------------------------------------
-COPY --from=builder /app/clojure/morph.db clojure/morph.db
-
-# ----------------------------------------------------------------
-# Runtime — production server (no autoreload). `serve` reads PORT
-# from the environment; 5000 matches the dev deployment convention.
-# ----------------------------------------------------------------
-ENV PORT=5000
-EXPOSE 5000
-CMD ["uv", "run", "new-morpheus"]
+EXPOSE 8080
