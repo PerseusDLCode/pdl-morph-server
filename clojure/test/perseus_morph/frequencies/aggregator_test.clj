@@ -96,12 +96,9 @@
                    (agg/update-morph-counts "grc" [parse])
                    (agg/update-morph-counts "grc" [parse]))]
     (agg/write-morph-counts! db counts)
-    (testing "every submap is upserted as its own row, with both the individual
-              feature columns and the folded feature_key populated"
-      (is (= {:language_code "grc" :part_of_speech "noun"
-              :grammatical_case "genitive" :feature_key "genitivenoun" :count 2.0}
-             (query-one db "SELECT language_code, part_of_speech, grammatical_case,
-                                   feature_key, count
+    (testing "every submap is upserted as its own row, keyed by the folded feature_key"
+      (is (= {:language_code "grc" :feature_key "genitivenoun" :count 2.0}
+             (query-one db "SELECT language_code, feature_key, count
                               FROM morph_frequencies
                              WHERE feature_key = 'genitivenoun'")))
       (is (= 2.0 (:count (query-one db "SELECT count FROM morph_frequencies WHERE feature_key = ''")))))
@@ -115,11 +112,11 @@
         counts (agg/update-prior-counts {} "grc" [{:part_of_speech "noun"}]
                                         {:part_of_speech "verb"} 1.0)]
     (agg/write-prior-counts! db counts)
-    (testing "the bigram is upserted with both previous_* and current_* columns populated"
-      (is (= {:language_code "grc" :previous_part_of_speech "noun"
-              :current_part_of_speech "verb" :count 1.0}
-             (query-one db "SELECT language_code, previous_part_of_speech,
-                                   current_part_of_speech, count
+    (testing "the bigram is upserted keyed by the folded previous_/current_ feature keys"
+      (is (= {:language_code "grc" :previous_feature_key "noun"
+              :current_feature_key "verb" :count 1.0}
+             (query-one db "SELECT language_code, previous_feature_key,
+                                   current_feature_key, count
                               FROM prior_frequencies"))))
     (testing "writing again accumulates onto the existing row instead of duplicating it"
       (agg/write-prior-counts! db counts)

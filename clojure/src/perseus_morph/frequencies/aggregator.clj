@@ -90,12 +90,12 @@
             previous-parses)))
 
 (defn- feature-row
-  "A row's feature columns, with `feature_key` for uniqueness alongside
-   the individual columns themselves (so the table stays queryable on a
-   single feature, not just the opaque combined key)."
+  "The row's `feature_key` alone (individual feature columns were dropped:
+   nothing queries morph_frequencies/prior_frequencies by an individual
+   feature column, only by the folded key, and keeping 15/30 redundant TEXT
+   columns per row was the single largest contributor to morph.db's size)."
   [features]
-  (assoc (zipmap features/feature-columns (map #(get features %) features/feature-columns))
-         :feature_key (feature-key features)))
+  {:feature_key (feature-key features)})
 
 (defn write-morph-counts!
   "Upserts the accumulated morph-count map into morph_frequencies,

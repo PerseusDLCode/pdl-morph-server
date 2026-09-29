@@ -1,0 +1,4 @@
+node_modules
+dist
+static/morph.db
+.svelte-kit

@@ -1,11 +1,13 @@
 # ==============================================================
-# pdl-morph-server — live FastAPI service.
+# pdl-morph-server — static nginx service.
 #
-# Model: the morphology DB (clojure/morph.db) is baked INTO the
-# image at build time, so there is no data volume to mount and
-# nothing to populate on the host — the container is fully
-# self-contained. Deploying a new build == pulling a new image
-# and recreating this service (see deploy/cron-deploy.sh).
+# Model: the morphology DB (clojure/morph.db) and the built Svelte
+# frontend are baked INTO the image at build time, so there is no
+# data volume to mount and nothing to populate on the host — the
+# container is fully self-contained. All querying happens in the
+# browser (sql.js-httpvfs range requests against /morph.db); nginx
+# just serves static files. Deploying a new build == pulling a new
+# image and recreating this service (see deploy/cron-deploy.sh).
 #
 # Env (IMAGE / IMAGE_TAG shared with cron-deploy.sh; SERVE_PORT
 # is the host-facing port):
@@ -17,14 +19,17 @@ services:
   serve:
     image: "${IMAGE:-ghcr.io/perseusdlcode/pdl-morph-server}:${IMAGE_TAG:-dev-latest}"
     container_name: "${SERVE_CTR:-morph-serve}"
-    # Host SERVE_PORT -> container 5000 (the app's PORT, set in the Dockerfile).
+    # Host SERVE_PORT -> container 8080 (nginx's listen port, set in
+    # deploy/nginx.conf).
     ports:
-      - "${SERVE_PORT:-5000}:5000"
+      - "${SERVE_PORT:-5000}:8080"
     restart: unless-stopped
-    # FastAPI serves /openapi.json once uvicorn is up; a 200 there means
-    # the app booted and opened the (read-only) DB successfully.
+    # nginx serves /healthz once it's up and morph.db was copied into
+    # the image successfully (see deploy/nginx.conf). 127.0.0.1, not
+    # localhost: nginx only listens on IPv4, and localhost may resolve
+    # to ::1 first.
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:5000/openapi.json"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3

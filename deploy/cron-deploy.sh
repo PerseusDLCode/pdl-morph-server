@@ -9,7 +9,7 @@
 # Config via environment (or ENV_FILE, sourced below):
 #   IMAGE          image repo     (default: ghcr.io/perseusdlcode/pdl-morph-server)
 #   IMAGE_TAG      image tag       (default: dev-latest)
-#   SERVE_PORT     host port       (default: 8081)   — passed through to compose
+#   SERVE_PORT     host port       (default: 5000)   — passed through to compose
 #   SERVE_CTR      container name  (default: morph-serve) — must match compose.yaml
 #   CONTAINER_CMD  podman | docker (default: podman)
 #   STATE_FILE     deployed-digest marker (default: deployed.digest)
@@ -32,7 +32,7 @@ ENV_FILE="${ENV_FILE:-$(dirname "$0")/.env}"
 IMAGE="${IMAGE:-ghcr.io/perseusdlcode/pdl-morph-server}"
 IMAGE_TAG="${IMAGE_TAG:-dev-latest}"
 CONTAINER_CMD="${CONTAINER_CMD:-podman}"
-SERVE_PORT="${SERVE_PORT:-8081}"
+SERVE_PORT="${SERVE_PORT:-5000}"
 SERVE_CTR="${SERVE_CTR:-morph-serve}"
 STATE_FILE="${STATE_FILE:-deployed.digest}"
 COMPOSE_PROJECT="${COMPOSE_PROJECT:-perseus}"
