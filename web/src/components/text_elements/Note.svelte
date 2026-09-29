@@ -17,7 +17,7 @@
 
 <sup class="tei-note">
   <button
-    class="tei-note-trigger cursor-pointer text-blue-700 hover:text-blue-900"
+    class="tei-note-trigger cursor-pointer text-primary hover:text-primary/80"
     type="button"
     onclick={() => dialogEl?.showModal()}
     aria-label="Show note"

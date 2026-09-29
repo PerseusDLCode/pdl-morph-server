@@ -8,8 +8,8 @@
   const { lemma }: { lemma: LemmaResultData } = $props();
 </script>
 
-<details class="border border-neutral-300 rounded mb-2 overflow-hidden" open>
-  <summary class="bg-neutral-100 cursor-pointer font-semibold px-4 py-2 text-neutral-800">
+<details class="border border-base-300 rounded mb-2 overflow-hidden" open>
+  <summary class="bg-base-300 cursor-pointer font-semibold px-4 py-2 text-base-content">
     <span>{lemma.headword}</span>
     {#if lemma.sequence_number > 1}
       <span class="text-neutral-400">({lemma.sequence_number})</span>

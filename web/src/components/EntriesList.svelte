@@ -6,8 +6,8 @@
   const { entries }: { entries: EntryOut[] } = $props();
 </script>
 
-<details class="border border-neutral-200 rounded">
-  <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
+<details class="border border-base-300 rounded bg-base-100">
+  <summary class="bg-base-200 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
     Entries
     <span class="font-normal text-neutral-400"
       >({entries.length} {entries.length !== 1 ? "lexica" : "lexicon"})</span

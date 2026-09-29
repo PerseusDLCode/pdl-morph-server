@@ -25,8 +25,8 @@
   }
 </script>
 
-<details class="border border-neutral-200 rounded" open>
-  <summary class="bg-neutral-50 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
+<details class="border border-base-300 rounded bg-base-100" open>
+  <summary class="bg-base-200 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
     Morphology
     <span class="font-normal text-neutral-400"
       >({parses.length} parse{parses.length !== 1 ? "s" : ""})</span
@@ -34,7 +34,7 @@
   </summary>
   <table class="min-w-full text-sm">
     <thead>
-      <tr class="border-b border-neutral-200 text-neutral-500 text-xs uppercase">
+      <tr class="border-b border-base-300 text-neutral-500 text-xs uppercase">
         <th class="px-3 py-1 text-left">Form</th>
         <th class="px-3 py-1 text-left">POS</th>
         <th class="px-3 py-1 text-left">Details</th>
@@ -42,11 +42,11 @@
     </thead>
     <tbody>
       {#each parses as parse}
-        <tr class="border-b border-neutral-100 {parse.is_winner ? 'bg-green-50' : ''}">
+        <tr class="border-b border-base-200 {parse.is_winner ? 'bg-success/10' : ''}">
           <td class="px-3 py-1">
             <span>{parse.form}</span>
             {#if parse.is_winner}
-              <span class="text-green-600 text-xs" title="Most likely parse"> ✓</span>
+              <span class="text-success text-xs" title="Most likely parse"> ✓</span>
             {/if}
           </td>
           <td class="px-3 py-1">{parse.part_of_speech}</td>
