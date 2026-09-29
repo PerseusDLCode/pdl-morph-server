@@ -103,3 +103,21 @@
             {:key "xyz" :text "<sense id=\"n2.1\" n=\"1\">two</sense>"}]
            (:entries (parse "<body><entryFree key=\"abc\"><sense id=\"n1.1\" n=\"1\">one</sense></entryFree><entryFree key=\"xyz\"><sense id=\"n2.1\" n=\"1\">two</sense></entryFree></body>"
                              "i"))))))
+
+(deftest parse-lexicon!-external-entities-test
+  (testing "external DTDs and parameter entities are never fetched"
+    ;; Stands in for oasis-open.org's http -> https redirect page, which
+    ;; Java doesn't follow and would otherwise parse as a DTD. The file
+    ;; only goes unread (and the document parses) if neither the DOCTYPE's
+    ;; system ID nor the internal subset's parameter entity is loaded, as
+    ;; with Lewis & Short's %PersDict;.
+    (let [redirect-page (write-temp-xml "<html><head><title>301 Moved Permanently</title></head></html>")
+          url (str (.toURI redirect-page))]
+      (is (= [{:key "abc" :id "n1.1" :n "1" :level nil :short-def "<i>one</i>"}]
+             (senses-of (str "<?xml version=\"1.0\"?>\n"
+                             "<!DOCTYPE TEI.2 SYSTEM \"" url "\" [\n"
+                             "<!ENTITY % PersDict SYSTEM \"" url "\">\n"
+                             "%PersDict;\n"
+                             "]>\n"
+                             "<TEI.2><entryFree key=\"abc\"><sense id=\"n1.1\" n=\"1\"><tr>one</tr></sense></entryFree></TEI.2>")
+                        "i"))))))

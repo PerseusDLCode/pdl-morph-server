@@ -131,10 +131,19 @@
    DTD entities (e.g. Perseus's PersDict.dtd) -- these files' internal DTD
    subsets pull them in purely to declare additional markup, none of which
    this parser needs, so there's no reason parsing should depend on network
-   access to perseus.tufts.edu/tei-c.org."
+   access to perseus.tufts.edu/tei-c.org.
+
+   load-external-dtd alone only skips the DOCTYPE's own system ID: a
+   parameter entity referenced from the internal subset (Lewis & Short's
+   `%PersDict;`) is still fetched, and it chains on to oasis-open.org's
+   iso-lat1.ent. That host now 301s http -> https, which Java won't follow
+   across protocols, so the redirect page itself gets parsed as a DTD and
+   the whole ingest fails. Hence external entities are switched off too."
   [^InputSource source content-handler]
   (let [reader (.getXMLReader (.newSAXParser (SAXParserFactory/newInstance)))]
     (.setFeature reader "http://apache.org/xml/features/nonvalidating/load-external-dtd" false)
+    (.setFeature reader "http://xml.org/sax/features/external-parameter-entities" false)
+    (.setFeature reader "http://xml.org/sax/features/external-general-entities" false)
     (.setContentHandler reader content-handler)
     (.parse reader source)))
 
