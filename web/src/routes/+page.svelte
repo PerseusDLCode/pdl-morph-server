@@ -5,12 +5,13 @@
   // back to /morph -- SvelteKit intercepts its submission as a client-side
   // navigation, and the query runs against morph.db in-browser via the
   // httpvfs connection instead of on a server.
+  import { resolve } from "$app/paths";
   import { page } from "$app/state";
-  import LemmaResult from "../../components/LemmaResult.svelte";
-  import { getDb } from "../../dbConnection.js";
-  import { buildMorphResponse } from "../../morph/index.js";
-  import { parseMorphResponseText } from "../../morph/renderText.js";
-  import type { MorphResponse } from "../../morph/types.js";
+  import LemmaResult from "../components/LemmaResult.svelte";
+  import { getDb } from "../dbConnection.js";
+  import { buildMorphResponse } from "../morph/index.js";
+  import { parseMorphResponseText } from "../morph/renderText.js";
+  import type { MorphResponse } from "../morph/types.js";
 
   const params = $derived(page.url.searchParams);
   const submittedWord = $derived(params.get("word")?.trim() || null);
@@ -76,7 +77,7 @@
 </svelte:head>
 
 <div>
-  <form action="/morph" method="get" class="flex gap-2 mb-4">
+  <form action={resolve("/")} method="get" class="flex gap-2 mb-4">
     <!-- svelte-ignore a11y_autofocus -->
     <input
       type="text"
@@ -92,7 +93,7 @@
     </select>
     <button
       type="submit"
-      class="btn bg-red-800 hover:bg-red-700 text-neutral-50">Search</button
+      class="btn btn-primary">Search</button
     >
   </form>
 
@@ -100,7 +101,7 @@
     <p class="text-neutral-500 italic">Searching…</p>
   {/if}
   {#if error}
-    <p class="text-red-600">{error}</p>
+    <p class="text-error">{error}</p>
   {/if}
 
   {#if submittedWord !== null && response !== null}

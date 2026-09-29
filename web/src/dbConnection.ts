@@ -1,3 +1,4 @@
+import { asset } from "$app/paths";
 import { openHttpVfsDb } from "./morph/httpVfsDb.js";
 import type { MorphDb } from "./morph/db.js";
 
@@ -17,7 +18,7 @@ export function getDb(): Promise<MorphDb> {
     dbPromise = openHttpVfsDb({
       workerUrl: workerUrl.toString(),
       wasmUrl: wasmUrl.toString(),
-      databaseUrl: "/morph.db",
+      databaseUrl: asset("/morph.db"),
     });
   }
   return dbPromise;

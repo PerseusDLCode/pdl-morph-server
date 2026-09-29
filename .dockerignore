@@ -29,7 +29,7 @@ deploy
 # --- Node dev environment & build output (rebuilt in-image) ---
 web/node_modules
 web/dist
-web/public/morph.db
+web/static/morph.db
 
 # --- Large morph data rebuilt from the .tar archives in-image ---
 # (the .tar files themselves ARE needed, so don't exclude those)

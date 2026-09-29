@@ -25,9 +25,11 @@ services:
       - "${SERVE_PORT:-5000}:8080"
     restart: unless-stopped
     # nginx serves /healthz once it's up and morph.db was copied into
-    # the image successfully (see deploy/nginx.conf).
+    # the image successfully (see deploy/nginx.conf). 127.0.0.1, not
+    # localhost: nginx only listens on IPv4, and localhost may resolve
+    # to ::1 first.
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3

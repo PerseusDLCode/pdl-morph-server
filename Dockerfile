@@ -91,7 +91,8 @@ RUN pnpm build
 FROM nginx:alpine AS runtime
 
 COPY deploy/nginx.conf /etc/nginx/nginx.conf
-COPY --from=web-builder /app/web/dist /usr/share/nginx/html
-COPY --from=builder /app/clojure/morph.db /usr/share/nginx/html/morph.db
+# Under morph/, matching the app's /morph base path (web/svelte.config.js).
+COPY --from=web-builder /app/web/dist /usr/share/nginx/html/morph
+COPY --from=builder /app/clojure/morph.db /usr/share/nginx/html/morph/morph.db
 
 EXPOSE 8080
