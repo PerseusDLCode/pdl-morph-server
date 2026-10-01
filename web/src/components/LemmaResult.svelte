@@ -33,7 +33,9 @@
   </summary>
 
   <div class="px-4 py-2 space-y-2">
-    <MorphologyTable parses={lemma.parses} />
+    {#if lemma.parses.length > 0}
+      <MorphologyTable parses={lemma.parses} />
+    {/if}
     <EntriesList entries={lemma.entries} />
   </div>
 </details>

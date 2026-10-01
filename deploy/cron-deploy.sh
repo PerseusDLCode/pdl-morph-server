@@ -24,6 +24,27 @@ set -euo pipefail
 
 log() { echo "[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] $*"; }
 
+# ----- 0. Refresh this checkout ---------------------------------------------
+# compose.yaml and this script live in git, not in the image, so a deploy
+# that changes them (ports, healthcheck) would otherwise run against a stale
+# copy. Fast-forward only; a failed pull (offline, local edits) is not fatal.
+# If the pull changed anything, re-exec so the rest of the run uses the new
+# script (bash reads scripts incrementally, so it must not be edited
+# underneath a running copy). SELF_UPDATED guards against looping.
+if [ -z "${SELF_UPDATED:-}" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  BEFORE=$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || echo "")
+  if git -C "$SCRIPT_DIR" pull --ff-only --quiet; then
+    AFTER=$(git -C "$SCRIPT_DIR" rev-parse HEAD 2>/dev/null || echo "")
+    if [ "$BEFORE" != "$AFTER" ]; then
+      log "Checkout updated (${BEFORE:0:7} -> ${AFTER:0:7}); restarting script."
+      SELF_UPDATED=1 exec "$0" "$@"
+    fi
+  else
+    log "WARN: git pull --ff-only failed; continuing with the current checkout."
+  fi
+fi
+
 # ----- Config -------------------------------------------------------------
 ENV_FILE="${ENV_FILE:-$(dirname "$0")/.env}"
 # shellcheck disable=SC1090
@@ -74,7 +95,11 @@ fi
 log "New image detected: ${NEW_DIGEST##*@}"
 
 # ----- 3. Recreate the service on the new image ---------------------------
+# Remove the old container by name first: podman-compose's --force-recreate
+# can fail to remove it, then die with "container name is already in use"
+# while the old (possibly unhealthy) container keeps running.
 log "Recreating '${COMPOSE_PROJECT}' serve..."
+${CONTAINER_CMD} rm -f "$SERVE_CTR" >/dev/null 2>&1 || true
 compose up -d --force-recreate serve
 
 # ----- 4. Verify it comes up (healthy if a healthcheck is defined) --------

@@ -119,6 +119,26 @@ export async function lookupParsesForWord(
   return rows;
 }
 
+// Fallback for words that are a lemma's headword but not any of its
+// listed forms (e.g. Latin "supersum", whose 1st-person singular is
+// absent from the morphology data): the lemmas whose headword or
+// bare_headword matches, so their senses and entries can still be shown.
+export async function lookupLemmasByHeadword(
+  db: MorphDb,
+  languageCode: string,
+  normalized: string,
+  bare: string,
+): Promise<Lemma[]> {
+  return db.all<Lemma>(
+    `SELECT id, headword, bare_headword, sequence_number, language_code
+     FROM lemmas
+     WHERE language_code = :language_code
+       AND (headword = :normalized OR bare_headword = :bare)
+     ORDER BY sequence_number`,
+    { language_code: languageCode, normalized, bare },
+  );
+}
+
 // Mirrors morph.py's document_frequency: two sequential lookups (lemma id,
 // then that lemma's weighted frequency within `documentId`).
 export async function documentFrequency(

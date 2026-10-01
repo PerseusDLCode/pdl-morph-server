@@ -1,10 +1,10 @@
 import { betaCodeToGreek as defaultBetaCodeToGreek } from "./betaCode.js";
 import type { MorphDb } from "./db.js";
-import { documentFrequency, lookupEntries, lookupParsesForWord, lookupSenses, SHORT_DEF_DOCUMENT_ID } from "./db.js";
+import { documentFrequency, lookupEntries, lookupLemmasByHeadword, lookupParsesForWord, lookupSenses, SHORT_DEF_DOCUMENT_ID } from "./db.js";
 import { bareForm, normalizeForm, normalizeUnicode } from "./language.js";
 import { groupByLemma, lemmaKeyToString, type LemmaGroups } from "./lemmaGroups.js";
 import { formFrequencyScores, priorFrequencyScores, selectWinningParse, wordFrequencyScores } from "./scoring.js";
-import type { Entry, EntryOut, LemmaResult, MorphResponse, Parse, ParseOut, Sense, SenseOut } from "./types.js";
+import type { Entry, LemmaKey, EntryOut, LemmaResult, MorphResponse, Parse, ParseOut, Sense, SenseOut } from "./types.js";
 
 export interface LookupParsesOptions {
   betaCodeToGreek?: (word: string) => string;
@@ -30,7 +30,17 @@ export async function lookupParses(
       rows = await lookupParsesForWord(db, languageCode, converted, normalizeForm, bareForm, normalizeUnicode);
     }
   }
-  return groupByLemma(rows);
+  const grouped = groupByLemma(rows);
+  if (rows.length === 0) {
+    // No parse has this form; it may still be a lemma's headword. Those
+    // lemmas get an empty parse list so senses/entries are still shown.
+    const lemmas = await lookupLemmasByHeadword(db, languageCode, normalizeForm(languageCode, word), bareForm(word));
+    for (const lemma of lemmas) {
+      const key: LemmaKey = [lemma.headword, lemma.sequence_number];
+      grouped.set(lemmaKeyToString(key), { key, parses: [] });
+    }
+  }
+  return grouped;
 }
 
 // Mirrors morph.py's short_definition: picks the one-line Logeion gloss
