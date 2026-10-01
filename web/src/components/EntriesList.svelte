@@ -7,7 +7,9 @@
 </script>
 
 <details class="border border-base-300 rounded bg-base-100">
-  <summary class="bg-base-200 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm">
+  <summary
+    class="bg-base-200 cursor-pointer font-medium px-3 py-1 text-neutral-700 text-sm"
+  >
     Entries
     <span class="font-normal text-neutral-400"
       >({entries.length} {entries.length !== 1 ? "lexica" : "lexicon"})</span
@@ -15,10 +17,12 @@
   </summary>
   <div class="px-3 py-2 space-y-1">
     {#if entries.length === 0}
-      <p class="text-neutral-400 text-sm italic">No lexicon entries available.</p>
+      <p class="text-neutral-400 text-sm italic">
+        No lexicon entries available.
+      </p>
     {:else}
       {#each entries as entry}
-        <details>
+        <details open={entries.length === 1}>
           <summary class="cursor-pointer font-medium text-neutral-600 text-sm"
             >{entry.document_id}</summary
           >
