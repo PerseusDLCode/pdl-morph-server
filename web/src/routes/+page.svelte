@@ -115,7 +115,7 @@
     {/if}
 
     {#each response.lemmas as lemma}
-      <LemmaResult {lemma} />
+      <LemmaResult {lemma} language={response.language_code} />
     {/each}
   {/if}
 </div>

@@ -5,7 +5,19 @@
   import ReadableTextContainer from "./text_elements/ReadableTextContainer.svelte";
   import type { LemmaResult as LemmaResultData } from "../morph/types.js";
 
-  const { lemma }: { lemma: LemmaResultData } = $props();
+  const { lemma, language }: { lemma: LemmaResultData; language: string } = $props();
+
+  // MinimumViablePerseus's corpus search, on the same host: every occurrence
+  // of this lemma's forms across the Greek and Latin texts. It identifies the
+  // lemma by headword + sequence number (lemmas.id isn't stable across
+  // morph.db rebuilds) and reads its forms from this app's morph.db.
+  const corpusSearchHref = $derived(
+    `/search/?${new URLSearchParams({
+      lemma: lemma.headword,
+      seq: String(lemma.sequence_number),
+      lang: language,
+    })}`,
+  );
 </script>
 
 <details class="border border-base-300 rounded mb-2 overflow-hidden" open>
@@ -33,6 +45,7 @@
   </summary>
 
   <div class="px-4 py-2 space-y-2">
+    <a href={corpusSearchHref} class="link text-sm">Find in corpus</a>
     {#if lemma.parses.length > 0}
       <MorphologyTable parses={lemma.parses} />
     {/if}
