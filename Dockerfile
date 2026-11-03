@@ -71,15 +71,6 @@ RUN clj -M:ingest Logeion-Latin-Shortdef ../data/LogeionLatinshortdefs.txt
 RUN clj -M:aggregate ../data
 
 # ================================================================
-# Stage 1b — morph.db alone, for publishing as a standalone OCI
-# artifact (see .github/workflows/build-and-release.yml). Nothing
-# else is in this stage, so `--output type=local` writes just the
-# one file. Not part of the default (runtime) build.
-# ================================================================
-FROM scratch AS db-export
-COPY --from=builder /app/clojure/morph.db /morph.db
-
-# ================================================================
 # Stage 2 — build the Svelte frontend
 # ================================================================
 FROM node:22-slim AS web-builder
